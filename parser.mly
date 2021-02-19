@@ -11,9 +11,9 @@
 %token RETURN IF ELIF ELSE FOR IN WHILE MATRIX INT BOOL FLOAT NONE BREAK CONTINUE 
 %token <int> LITERAL
 %token <bool> BLIT
-%token <matrix> MLIT (* what is <this>*)
+%token <matrix> MLIT (* update OH: this is good, we can always change parser>*)
 %token <string> ID FLIT
-%token CLASS DEF (*WHERE DO THESE GO???????*)
+%token CLASS DEF (*update OH: this is fine as well*)
 %token EOF
 
 %start program
@@ -33,17 +33,18 @@
 %%
 
 program:
-  CLASS ID LBRACE decls DEF MAIN RBRACE EOF { $1 } (* HOW TO PUT IN MAIN METHOD?*)
+  CLASS ID LBRACE decls DEF MAIN RBRACE EOF { $1 } (* HOW TO PUT IN MAIN METHOD? update OH: this is going to be how many classes users can define*)
+  CLASS ID LBRACE decls DEF MAIN RBRACE EOF { $1 } 
 
 decls:
    /* nothing */ { ([], [])               }
- | decls vdecl { (($2 :: fst $1), snd $1) } (* WHAT?? *)
+ | decls vdecl { (($2 :: fst $1), snd $1) } (* WHAT?? update OH: this is variable declarations  *)
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
    DEF ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
      { { fname = $2;
-	 formals = List.rev $4;
+	 formals = List.rev $4; (* possibly remove because we're expanding it in formals_opt *)
 	 locals = List.rev $7;
 	 body = List.rev $8 } }
 
@@ -88,11 +89,13 @@ stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
+  | LBRACE elif_list RBRACE	            { Block(List.rev $2)    } (* update from OH *)
   | IF expr LBRACE stmt RBRACE %prec NOELSE { If($2, $4, Block([])) } (* Is this right? *)
   | IF expr LBRACE stmt RBRACE ELSE LBRACE stmt RBRACE  
 					    { If($2, $4, $8)        }
-  | IF expr LBRACE stmt elif_list RBRACE ELSE LBRACE stmt RBRACE  
-                                            { If($2, $4, $8)        } (* WITH ELSE IF *)
+  | IF expr LBRACE stmt elif_list expr RBRACE ELSE LBRACE stmt RBRACE  
+                                            { If($2, $4, $8)        } (* WITH ELSE IF update OH: wrong we're closisng immediately. added expr *)
+  
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   }
   | WHILE  expr LBRACE stmt RBRACE          { While($2, $4)         }
