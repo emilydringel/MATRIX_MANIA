@@ -73,9 +73,16 @@ stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
+elif_list:
+     elif           { [$1] }
+   | elif_list elif { $2 :: $1 }
 
+elif:
+  ELIF expr LBRACE stmt RBRACE { ($2, $4) }
+(*
 elif_block:
   ELIF expr LBRACE stmt RBRACE elif_block  { If($2, $4, Block([])  } (* ?? *)
+*)
 
 stmt:
     expr SEMI                               { Expr $1               }
@@ -84,10 +91,10 @@ stmt:
   | IF expr LBRACE stmt RBRACE %prec NOELSE { If($2, $4, Block([])) } (* Is this right? *)
   | IF expr LBRACE stmt RBRACE ELSE LBRACE stmt RBRACE  
 					    { If($2, $4, $8)        }
-  | IF expr LBRACE stmt elif_block RBRACE ELSE LBRACE stmt RBRACE  
+  | IF expr LBRACE stmt elif_list RBRACE ELSE LBRACE stmt RBRACE  
                                             { If($2, $4, $8)        } (* WITH ELSE IF *)
-  | FOR ID IN expr LBRACE stmt RBRACE
-                                            { For($2, $4, $6)   }
+  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+                                            { For($3, $5, $7, $9)   }
   | WHILE  expr LBRACE stmt RBRACE          { While($2, $4)         }
 
 expr_opt:
@@ -96,7 +103,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT	           { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | matrix_lit       { MatrixLit($1)          }
   | ID               { Id($1)                 }
@@ -118,12 +125,16 @@ expr:
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
 
-matrix_elmt: (* like stmt_list *)
-	
 matrix_row: 
+    LITERAL                   { [$1] }
+  | LITERAL COMMA matrix_row  { $2 :: $1 }
+
+matrix_row_list:
+    matrix_row                { [$1] }
+  | matrix_row SEMI matrix_row_list  { $2 :: $1 }
 
 matrix_lit:   (*[1, 2, 3; 4, 5, 6] *)
-	LBRACK COMMA LITERAL SEMI RBRACK
+	LBRACK matrix_row_list RBRACK { $2 }
 
 
 args_opt:
