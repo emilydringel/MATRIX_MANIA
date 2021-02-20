@@ -11,7 +11,6 @@
 %token RETURN IF ELIF ELSE FOR IN WHILE MATRIX INT BOOL FLOAT NONE BREAK CONTINUE 
 %token <int> LITERAL
 %token <bool> BLIT
-%token <matrix> MLIT (* update OH: this is good, we can always change parser>*)
 %token <string> ID FLIT
 %token CLASS DEF (*update OH: this is fine as well*)
 %token EOF
