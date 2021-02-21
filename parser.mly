@@ -1,4 +1,4 @@
-(* Parser File *)
+/* Parser File */
 
 /* Ocamlyacc parser for MicroC */
 
@@ -6,44 +6,57 @@
 
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA PLUS MINUS TIMES DIVIDE MOD ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELIF ELSE FOR IN WHILE MATRIX INT BOOL FLOAT NONE BREAK CONTINUE 
+%token RETURN IF ELIF ELSE FOR IN WHILE BREAK CONTINUE 
+/*%token INT BOOL FLOAT MATRIX */
+%token NONE
 %token <int> LITERAL
 %token <bool> BLIT
 %token <string> ID FLIT
-%token CLASS DEF (*update OH: this is fine as well*)
+%token DEF MAIN
+%token IMPORT
 %token EOF
 
 %start program
 %type <Ast.program> program
 
 %nonassoc NOELSE
-%nonassoc ELSE (* what is this? what about if and elif? *)
+%nonassoc ELSE /* what is this? what about if and elif? */
 %right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
-%left TIMES DIVIDE
+%left TIMES DIVIDE MOD
 %right NOT
 
 %%
 
 program:
-  CLASS ID LBRACE decls DEF MAIN RBRACE EOF { $1 } (* HOW TO PUT IN MAIN METHOD? update OH: this is going to be how many classes users can define*)
-  CLASS ID LBRACE decls DEF MAIN RBRACE EOF { $1 } 
+  imports decls main EOF { $2 }
+
+imports:
+   /* nothing */               { []     }
+  | formal_list IMPORT ID SEMI { $3 :: $1 }
+
+main:
+  DEF MAIN LPAREN RPAREN LBRACE vdecl_list stmt_list RBRACE
+    { { 
+	 locals = List.rev $6;
+	 body = List.rev $7 } }
+
 
 decls:
    /* nothing */ { ([], [])               }
- | decls vdecl { (($2 :: fst $1), snd $1) } (* WHAT?? update OH: this is variable declarations  *)
+ | decls vdecl { (($2 :: fst $1), snd $1) }
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
    DEF ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
      { { fname = $2;
-	 formals = List.rev $4; (* possibly remove because we're expanding it in formals_opt *)
+	 formals = List.rev $4;
 	 locals = List.rev $7;
 	 body = List.rev $8 } }
 
@@ -55,49 +68,48 @@ formal_list:
     ID                   { [$1]     }
   | formal_list COMMA ID { $3 :: $1 }
 
+/*
 typ:
-    MATRIX { Matrix }
+    INTMATRIX { IntMatrix }
+    BOOLMATRIX { BoolMatrix }
+    FLOATMATRIX { FloatMatrix }
   | INT   { Int   }
   | BOOL  { Bool  }
   | FLOAT { Float }
-  | NONE  { None  }
+  | NONE  { None  }*/
 
 vdecl_list:
     /* nothing */    { [] }
   | vdecl_list vdecl { $2 :: $1 }
 
 vdecl:
-   ID ASSIGN expr SEMI { $1 } (* What do we do about this and assigning variables *)
+   ID ASSIGN expr SEMI { $1 }
 
 stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
 elif_list:
-     elif           { [$1] }
+     /* nothing */       { [] }
    | elif_list elif { $2 :: $1 }
 
 elif:
-  ELIF expr LBRACE stmt RBRACE { ($2, $4) }
-(*
-elif_block:
-  ELIF expr LBRACE stmt RBRACE elif_block  { If($2, $4, Block([])  } (* ?? *)
-*)
+  ELIF LPAREN expr RPAREN LBRACE stmt RBRACE { ($3, $6) }
 
 stmt:
     expr SEMI                               { Expr $1               }
+  | BREAK SEMI                              { Break                 }
+  | CONTINUE SEMI                           { Continue              }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
-  | LBRACE elif_list RBRACE	            { Block(List.rev $2)    } (* update from OH *)
-  | IF expr LBRACE stmt RBRACE %prec NOELSE { If($2, $4, Block([])) } (* Is this right? *)
-  | IF expr LBRACE stmt RBRACE ELSE LBRACE stmt RBRACE  
-					    { If($2, $4, $8)        }
-  | IF expr LBRACE stmt elif_list expr RBRACE ELSE LBRACE stmt RBRACE  
-                                            { If($2, $4, $8)        } (* WITH ELSE IF update OH: wrong we're closisng immediately. added expr *)
+  | LBRACE elif_list RBRACE	                { Block(List.rev $2)    } 
+  | IF LPAREN expr RPAREN LBRACE stmt RBRACE elif_list ELSE LBRACE stmt RBRACE  
+                                            { If($3, $6, $8, $11)        } 
+  | IF LPAREN expr RPAREN LBRACE stmt RBRACE elif_list %prec NOELSE { If($3, $6, $8, Block([])) } 
   
-  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
+  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt_list
                                             { For($3, $5, $7, $9)   }
-  | WHILE  expr LBRACE stmt RBRACE          { While($2, $4)         }
+  | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE          { While($3, $6)         }
 
 expr_opt:
     /* nothing */ { Noexpr }
@@ -108,11 +120,13 @@ expr:
   | FLIT	           { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | matrix_lit       { MatrixLit($1)          }
+  | NONE             { None                   }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
   | expr DIVIDE expr { Binop($1, Div,   $3)   }
+  | expr MOD    expr { Binop($1, Mod,   $3)   }
   | expr EQ     expr { Binop($1, Equal, $3)   }
   | expr NEQ    expr { Binop($1, Neq,   $3)   }
   | expr LT     expr { Binop($1, Less,  $3)   }
@@ -128,14 +142,14 @@ expr:
   | LPAREN expr RPAREN { $2                   }
 
 matrix_row: 
-    LITERAL                   { [$1] }
-  | LITERAL COMMA matrix_row  { $2 :: $1 }
+    expr                   { [$1] }
+  | expr COMMA matrix_row  { $1 :: $3 }
 
 matrix_row_list:
     matrix_row                { [$1] }
-  | matrix_row SEMI matrix_row_list  { $2 :: $1 }
+  | matrix_row SEMI matrix_row_list  { $1 :: $3 }
 
-matrix_lit:   (*[1, 2, 3; 4, 5, 6] *)
+matrix_lit:   /*[1, 2, 3; 4, 5, 6] */
 	LBRACK matrix_row_list RBRACK { $2 }
 
 
