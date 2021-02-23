@@ -118,8 +118,8 @@ expr_opt:
 expr:
     LITERAL          { Literal($1)            }
   | FLIT	           { Fliteral($1)           }
-  | BLIT             { BoolLit($1)            }
-  | matrix_lit       { MatrixLit($1)          }
+  | BLIT             { BoolLit($1)            } /* remove bools */
+  | matrix_lit       { MatrixLit($1)          } /* int_matrix_lit?? */
   | NONE             { None                   }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
@@ -140,6 +140,11 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
+
+/* matrix.size */
+/* == */
+/* != */
+/* matrix[row, column] */
 
 matrix_row: 
     expr                   { [$1] }
