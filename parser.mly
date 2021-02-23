@@ -7,7 +7,7 @@
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA PLUS MINUS TIMES DIVIDE MOD ASSIGN
-%token NOT EQ NEQ LT LEQ GT GEQ AND OR ISEQ NOTEQ
+%token NOT SIZE EQ NEQ LT LEQ GT GEQ AND OR ISEQ NOTEQ
 %token RETURN IF ELIF ELSE FOR IN WHILE BREAK CONTINUE 
 /*%token INT BOOL FLOAT MATRIX */
 %token NONE
@@ -23,6 +23,7 @@
 
 %nonassoc NOELSE
 %nonassoc ELSE /* what is this? what about if and elif? */
+%nonassoc BREAK CONTINUE RETURN
 %right ASSIGN
 %left OR
 %left AND
@@ -30,7 +31,7 @@
 %left LT GT LEQ GEQ ISEQ NOTEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
-%right NOT
+%right NOT SIZE
 
 %%
 
@@ -46,10 +47,9 @@ defines:
   | defines DEFINE ID expr SEMI { $3 :: Define($3, $4) }
 
 main:
-  DEF MAIN LPAREN RPAREN LBRACE vdecl_list stmt_list RBRACE
+  DEF MAIN LPAREN RPAREN LBRACE stmt_list RBRACE
     { { 
-	 locals = List.rev $6;
-	 body = List.rev $7 } }
+	 body = List.rev $6 } }
 
 
 decls:
@@ -58,11 +58,11 @@ decls:
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
-   DEF ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+   DEF ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+   /* TOOK OUT VDECL_LIST */
      { { fname = $2;
 	 formals = List.rev $4;
-	 locals = List.rev $7;
-	 body = List.rev $8 } }
+	 body = List.rev $7 } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -80,11 +80,14 @@ typ:
   | INT   { Int   }
   | BOOL  { Bool  }
   | FLOAT { Float }
-  | NONE  { None  }*/
+  | NONE  { None  }
+*/
 
+/* 
 vdecl_list:
-    /* nothing */    { [] }
+    / nothing /    { [] } 
   | vdecl_list vdecl { $2 :: $1 }
+*/
 
 vdecl:
    ID ASSIGN expr SEMI { $1 }
@@ -106,13 +109,12 @@ stmt:
   | CONTINUE SEMI                           { Continue              }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
-  | LBRACE elif_list RBRACE	                { Block(List.rev $2)    } 
+  /*| LBRACE elif_list RBRACE	                { Block(List.rev $2)    } */
+  | IF LPAREN expr RPAREN LBRACE stmt RBRACE elif_list %prec NOELSE { If($3, $6, $8, Block([])) } 
   | IF LPAREN expr RPAREN LBRACE stmt RBRACE elif_list ELSE LBRACE stmt RBRACE  
                                             { If($3, $6, $8, $11)        } 
-  | IF LPAREN expr RPAREN LBRACE stmt RBRACE elif_list %prec NOELSE { If($3, $6, $8, Block([])) } 
-  
-  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt_list
-                                            { For($3, $5, $7, $9)   }
+  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN LBRACE stmt_list RBRACE
+                                            { For($3, $5, $7, $10)   }
   | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE          { While($3, $6)         }
 
 expr_opt:
@@ -137,12 +139,13 @@ expr:
   | expr LEQ    expr { Binop($1, Leq,   $3)   }
   | expr GT     expr { Binop($1, Greater, $3) }
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
-  | expr ISEQ   expr { Binop($1, ISEQ, $3) }
-  | expr NOTEQ  expr { Binop($1, NOTEQ,   $3)   }
+  | expr ISEQ   expr { Binop($1, ISEQ, $3)    }
+  | expr NOTEQ  expr { Binop($1, NOTEQ,   $3) }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
+  | SIZE expr        { Unop(Size, $2)         }
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
@@ -160,9 +163,9 @@ matrix_row_list:
     matrix_row                { [$1] }
   | matrix_row SEMI matrix_row_list  { $1 :: $3 }
 
-matrix_lit:   /*[1, 2, 3; 4, 5, 6] */
+matrix_lit:   
 	LBRACK matrix_row_list RBRACK { $2 }
-
+ /*[1, 2, 3; 4, 5, 6] */
 
 args_opt:
     /* nothing */ { [] }
