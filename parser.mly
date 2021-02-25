@@ -1,6 +1,6 @@
 /* Parser File */
 
-/* Ocamlyacc parser for MicroC */
+/* Ocamlyacc parser for MATRIXMANIA */
 
 %{
 
@@ -12,7 +12,6 @@
 /*%token INT BOOL FLOAT MATRIX */
 %token NONE
 %token <int> LITERAL
-%token <bool> BLIT
 %token <string> ID FLIT
 %token DEF MAIN
 %token IMPORT DEFINE
@@ -22,13 +21,13 @@
 %type <Ast.program> program
 
 %nonassoc NOELSE
-%nonassoc ELSE /* what is this? what about if and elif? */
+%nonassoc ELSE 
 %nonassoc BREAK CONTINUE RETURN
 %right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
-%left LT GT LEQ GEQ ISEQ NOTEQ
+%left LT GT LEQ GEQ ISEQ NOTEQ LBRACK RBRACK
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 %right NOT SIZE
@@ -72,7 +71,7 @@ formal_list:
     ID                   { [$1]     }
   | formal_list COMMA ID { $3 :: $1 }
 
-/*
+/* FROM MICROC
 typ:
     INTMATRIX { IntMatrix }
     BOOLMATRIX { BoolMatrix }
@@ -124,8 +123,7 @@ expr_opt:
 expr:
     LITERAL          { Literal($1)            }
   | FLIT	           { Fliteral($1)           }
-  | BLIT             { BoolLit($1)            } /* remove bools */
-  | matrix_lit       { MatrixLit($1)          } /* int_matrix_lit?? */
+  | matrix_lit       { MatrixLit($1)          }
   | NONE             { None                   }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
@@ -149,11 +147,10 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
+  | matrix_access    { $1                     }
 
-/* matrix.size */
-/* == */
-/* != */
-/* matrix[row, column] */
+matrix_access:
+  expr LBRACK LITERAL COMMA LITERAL RBRACK { Access($1, $3, $5) }
 
 matrix_row: 
     expr                   { [$1] }
