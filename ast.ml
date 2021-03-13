@@ -2,24 +2,26 @@
 
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or
+type op = Add | Sub | Mult | Div | ISEQ | NOTEQ | Less | Leq | Greater | Geq |
+          And | Or | Mod
 
-type uop = Neg | Not
+type uop = Not | Neg | Size
 
-type typ = Int | Bool | Float | Void
+type typ = Int | Float | Void | Matrix of typ (* Is this how you write matrix??*)
 
 type bind = typ * string
 
 type expr =
     Literal of int
   | Fliteral of string
-  | BoolLit of bool
+  | MatrixLit of string
+ (* | BoolLit of bool *)
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
+  | Access of expr * int * int
   | Noexpr
 
 type stmt =
@@ -29,6 +31,8 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt
+  | Break (* Maybe *)
+  | Continue 
 
 type func_decl = {
     typ : typ;
@@ -47,6 +51,12 @@ let string_of_op = function
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
-  | Equal -> "=="
-  | Neq -> "!="
+  | ISEQ -> "=="
+  | NOTEQ -> "!="
   | Less -> "<"
+  | Mod -> "%"
+  | Leq -> "<="
+  | Greater -> ">"
+  | Geq -> ">="
+  | And -> "&&"
+  | Or -> "||"

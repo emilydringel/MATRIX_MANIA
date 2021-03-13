@@ -9,8 +9,7 @@
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA PLUS MINUS TIMES DIVIDE MOD ASSIGN
 %token NOT SIZE EQ NEQ LT LEQ GT GEQ AND OR ISEQ NOTEQ
 %token RETURN IF ELIF ELSE FOR IN WHILE BREAK CONTINUE 
-/*%token INT BOOL FLOAT MATRIX */
-%token NONE
+%token INT FLOAT MATRIX VOID
 %token <int> LITERAL
 %token <string> ID FLIT
 %token DEF MAIN
@@ -71,15 +70,11 @@ formal_list:
     ID                   { [$1]     }
   | formal_list COMMA ID { $3 :: $1 }
 
-/* FROM MICROC
+/*
 typ:
-    INTMATRIX { IntMatrix }
-    BOOLMATRIX { BoolMatrix }
-    FLOATMATRIX { FloatMatrix }
+    MATRIX LEQ typ GEQ { Matrix($3) } *NEW - Might be wrong*
   | INT   { Int   }
-  | BOOL  { Bool  }
   | FLOAT { Float }
-  | NONE  { None  }
 */
 
 /* 
@@ -124,7 +119,7 @@ expr:
     LITERAL          { Literal($1)            }
   | FLIT	           { Fliteral($1)           }
   | matrix_lit       { MatrixLit($1)          }
-  | NONE             { None                   }
+ /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
