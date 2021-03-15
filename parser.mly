@@ -7,8 +7,8 @@
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA PLUS MINUS TIMES DIVIDE MOD ASSIGN
-%token NOT SIZE EQ NEQ LT LEQ GT GEQ AND OR ISEQ NOTEQ
-%token RETURN IF ELIF ELSE FOR IN WHILE BREAK CONTINUE 
+%token NOT SIZE EQ NEQ LT LEQ GT GEQ AND OR
+%token RETURN IF ELIF ELSE FOR WHILE BREAK CONTINUE 
 %token INT FLOAT MATRIX VOID
 %token <int> LITERAL
 %token <string> ID FLIT
@@ -26,7 +26,7 @@
 %left OR
 %left AND
 %left EQ NEQ
-%left LT GT LEQ GEQ ISEQ NOTEQ LBRACK RBRACK
+%left LT GT LEQ GEQ LBRACK RBRACK
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 %right NOT SIZE
@@ -72,7 +72,11 @@ formal_list:
 
 
 typ:
+<<<<<<< HEAD
     MATRIX LEQ typ GEQ { Matrix($3) } /*NEW - Might be wrong */
+=======
+    MATRIX LT typ GT { Matrix($3) } *NEW - Might be wrong*
+>>>>>>> a0927d9b993096adb055fab6d20890e2f83418ec
   | INT   { Int   }
   | FLOAT { Float }
 
@@ -132,8 +136,6 @@ expr:
   | expr LEQ    expr { Binop($1, Leq,   $3)   }
   | expr GT     expr { Binop($1, Greater, $3) }
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
-  | expr ISEQ   expr { Binop($1, ISEQ, $3)    }
-  | expr NOTEQ  expr { Binop($1, NOTEQ,   $3) }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
