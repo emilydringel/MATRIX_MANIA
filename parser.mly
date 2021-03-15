@@ -70,12 +70,12 @@ formal_list:
     ID                   { [$1]     }
   | formal_list COMMA ID { $3 :: $1 }
 
-/*
+
 typ:
-    MATRIX LEQ typ GEQ { Matrix($3) } *NEW - Might be wrong*
+    MATRIX LEQ typ GEQ { Matrix($3) } /*NEW - Might be wrong */
   | INT   { Int   }
   | FLOAT { Float }
-*/
+
 
 /* 
 vdecl_list:
@@ -117,7 +117,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	           { Fliteral($1)           }
+  | FLIT	     { Fliteral($1)           }
   | matrix_lit       { MatrixLit($1)          }
  /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
@@ -142,7 +142,9 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
-  | matrix_access    { $1                     }
+  | matrix_access    { $1      }
+  | matrix_row_list  { $1::$3		      }
+/* | matrix_row       { $1		      } */
 
 matrix_access:
   expr LBRACK LITERAL COMMA LITERAL RBRACK { Access($1, $3, $5) }
