@@ -12,6 +12,7 @@
 %token INT FLOAT MATRIX VOID
 %token <int> LITERAL
 %token <string> ID FLIT
+%token <string> LITERAL
 %token DEF MAIN
 %token IMPORT DEFINE
 %token EOF
@@ -72,11 +73,8 @@ formal_list:
 
 
 typ:
-<<<<<<< HEAD
     MATRIX LEQ typ GEQ { Matrix($3) } /*NEW - Might be wrong */
-=======
-    MATRIX LT typ GT { Matrix($3) } *NEW - Might be wrong*
->>>>>>> a0927d9b993096adb055fab6d20890e2f83418ec
+  | MATRIX LT typ GT { Matrix($3) } /*NEW - Might be wrong*/
   | INT   { Int   }
   | FLOAT { Float }
 
@@ -145,7 +143,7 @@ expr:
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
   | matrix_access    { $1      }
-  | matrix_row_list  { $1::$3		      }
+  | matrix_row_list  { [$1]      	      }
 /* | matrix_row       { $1		      } */
 
 matrix_access:
