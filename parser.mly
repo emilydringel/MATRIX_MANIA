@@ -12,7 +12,7 @@
 %token INT FLOAT MATRIX VOID
 %token <int> LITERAL
 %token <string> ID FLIT
-%token <string> LITERAL
+%token <string> STRLITERAL
 %token DEF MAIN
 %token IMPORT DEFINE
 %token EOF
