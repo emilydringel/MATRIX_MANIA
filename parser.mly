@@ -3,16 +3,17 @@
 /* Ocamlyacc parser for MATRIXMANIA */
 
 %{
-
+ open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA PLUS MINUS TIMES DIVIDE MOD ASSIGN
-%token NOT SIZE EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELIF ELSE FOR WHILE BREAK CONTINUE 
-%token INT FLOAT MATRIX VOID
-%token <int> LITERAL
-%token <string> ID FLIT
-%token <string> STRLITERAL
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA 
+%token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
+%token SIZE EQ NEQ LT LEQ GT GEQ AND OR
+%token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID
+%token <int> INTLIT
+%token <string> ID 
+%token <float> FLIT
+%token <string> STRLIT
 %token DEF MAIN
 %token IMPORT DEFINE
 %token EOF
@@ -73,17 +74,17 @@ formal_list:
 
 
 typ:
-    MATRIX LEQ typ GEQ { Matrix($3) } /*NEW - Might be wrong */
-  | MATRIX LT typ GT { Matrix($3) } /*NEW - Might be wrong*/
-  | INT   { Int   }
+ /*   MATRIX LEQ typ GEQ { Matrix($3) } NEW - Might be wrong */ 
+ /* | MATRIX LT typ GT { Matrix($3) } NEW - Might be wrong */
+ /*   MATRIX { Matrix }  can we just do this? */
+  INT { Int   }
   | FLOAT { Float }
+  | VOID  { Void } 
 
+/* vdecl_list:
+    /* nothing    { [] } */ 
+/*  | vdecl_list vdecl { $2 :: $1 } */
 
-/* 
-vdecl_list:
-    / nothing /    { [] } 
-  | vdecl_list vdecl { $2 :: $1 }
-*/
 
 vdecl:
    ID ASSIGN expr SEMI { $1 }
@@ -118,9 +119,10 @@ expr_opt:
   | expr          { $1 }
 
 expr:
-    LITERAL          { Literal($1)            }
+    INTLIT          { Literal($1)            }
+  | STRLIT	    { StringLit($1)          }
   | FLIT	     { Fliteral($1)           }
-  | matrix_lit       { MatrixLit($1)          }
+/*  | matrix_lit       { MatrixLit($1)          } */
  /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
@@ -142,12 +144,14 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
-  | matrix_access    { $1      }
+ /* | matrix_access    { Literal($1)      }
   | matrix_row_list  { [$1]      	      }
-/* | matrix_row       { $1		      } */
+  | matrix_row       { $1		      } */
 
+/*
 matrix_access:
-  expr LBRACK LITERAL COMMA LITERAL RBRACK { Access($1, $3, $5) }
+  expr LBRACK INTLIT COMMA INTLIT RBRACK { Access($1, $3, $5) }
+ before this $3 and $5 were LITERAL, but parser said that terminal $3 had no argumenet 
 
 matrix_row: 
     expr                   { [$1] }
@@ -159,7 +163,7 @@ matrix_row_list:
 
 matrix_lit:   
 	LBRACK matrix_row_list RBRACK { $2 }
- /*[1, 2, 3; 4, 5, 6] */
+ [1, 2, 3; 4, 5, 6] */
 
 args_opt:
     /* nothing */ { [] }
