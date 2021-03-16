@@ -13,6 +13,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
+  | Literal of string
   | Fliteral of string
   | MatrixLit of string
  (* | BoolLit of bool *)
