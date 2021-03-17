@@ -4,6 +4,8 @@
 
 let digit = ['0' - '9']
 let digits = digit+
+
+(* float literal components*)
 let withPoint = digits? '.' digits?
 let exponent = 'e' ['+' '-']? digits
 let float = withPoint exponent? | digits exponent
@@ -46,9 +48,9 @@ rule token = parse
 | "float"    { FLOAT }
 | "matrix"   { MATRIX }
 | "void"     { VOID }
-| "true"     { BLIT(true)  }
+| "size"     { SIZE }
 | "main"     { MAIN }
-| "import"   {IMPORT }
+| "import"   { IMPORT }
 | "define"   { DEFINE }
 | "def"      { DEF }
 | digits as lxm { LITERAL(int_of_string lxm) }
