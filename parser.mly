@@ -87,7 +87,7 @@ typ:
 
 
 vdecl:
-   ID ASSIGN expr SEMI { $1 }
+   typ ID ASSIGN expr SEMI { $1 }
 
 stmt_list:
     /* nothing */  { [] }
