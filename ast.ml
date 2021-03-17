@@ -7,7 +7,7 @@ type op = Add | Sub | Mult | Div | ISEQ | NOTEQ | Less | Leq | Greater | Geq |
 
 type uop = Not | Neg | Size
 
-type typ = Int | Float | Void (* | Matrix of typ * int *) 
+type typ = Int | Float | Void | Matrix of typ * int  
 
 type bind = typ * string
 
@@ -15,7 +15,7 @@ type expr =
     Literal of int
   | StrLiteral of string
   | Fliteral of float
-(*  | MatrixLit of string *)
+  | MatrixLit of string 
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
