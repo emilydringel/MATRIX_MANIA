@@ -6,10 +6,10 @@
  open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA 
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA   
 %token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
 %token SIZE EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID
+%token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID MATRIX
 %token <int> INTLIT
 %token <string> ID 
 %token <float> FLIT
@@ -58,28 +58,29 @@ decls:
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
-   DEF ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+   DEF typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
    /* TOOK OUT VDECL_LIST */
-     { { fname = $2;
-	 formals = List.rev $4;
-	 body = List.rev $7 } }
+     { { fname = $3;
+	 formals = List.rev $5;
+	 body = List.rev $8
+	 typ = $2;  } }
 
 formals_opt:
     /* nothing */ { [] }
   | formal_list   { $1 }
 
 formal_list:
-    ID                   { [$1]     }
-  | formal_list COMMA ID { $3 :: $1 }
+    typ ID                   { [($1,$2)] }
+  | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 
 typ:
  /*   MATRIX LEQ typ GEQ { Matrix($3) } NEW - Might be wrong */ 
- /* | MATRIX LT typ GT { Matrix($3) } NEW - Might be wrong */
- /*   MATRIX { Matrix }  can we just do this? */
-  INT { Int   }
+   MATRIX LT typ GT { Matrix($3) } /*  NEW - Might be wrong */
+  |INT { Int   }
   | FLOAT { Float }
   | VOID  { Void } 
+ 
 
 /* vdecl_list:
     /* nothing    { [] } */ 
@@ -122,7 +123,7 @@ expr:
     INTLIT          { Literal($1)            }
   | STRLIT	    { StringLit($1)          }
   | FLIT	     { Fliteral($1)           }
-/*  | matrix_lit       { MatrixLit($1)          } */
+  | matrix_lit       { MatrixLit($1)          } 
  /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
@@ -144,26 +145,33 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
- /* | matrix_access    { Literal($1)      }
-  | matrix_row_list  { [$1]      	      }
-  | matrix_row       { $1		      } */
-
+  | matrix_access    { Literal($1)      }
 /*
+matrix:
+  typ LBRACK INTLIT RBRACK LBRACK INTLIT RBRACK {   }
+
+matrix_primitives:
+  INTLIT  { Literal($1) }
+  | FLIT { Fliteral($1) }
+*/
+
 matrix_access:
   expr LBRACK INTLIT COMMA INTLIT RBRACK { Access($1, $3, $5) }
- before this $3 and $5 were LITERAL, but parser said that terminal $3 had no argumenet 
+/* before this $3 and $5 were LITERAL, but parser said that terminal $3 had no argument */ 
 
 matrix_row: 
     expr                   { [$1] }
   | expr COMMA matrix_row  { $1 :: $3 }
+/* expr or expr followed by colummn and row, stacking expr, can do math w/ expr  */
 
 matrix_row_list:
     matrix_row                { [$1] }
   | matrix_row SEMI matrix_row_list  { $1 :: $3 }
+/* 1 row or row followed by semi colon then rest of list */
 
 matrix_lit:   
 	LBRACK matrix_row_list RBRACK { $2 }
- [1, 2, 3; 4, 5, 6] */
+/* [1, 2, 3; 4, 5, 6] list of rows */ 
 
 args_opt:
     /* nothing */ { [] }
