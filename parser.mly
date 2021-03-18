@@ -12,7 +12,7 @@
 %token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID MATRIX
 %token <int> INTLIT
 %token <string> ID 
-%token <float> FLIT
+%token <string> FLIT
 %token <string> STRLIT
 %token DEF MAIN
 %token IMPORT DEFINE

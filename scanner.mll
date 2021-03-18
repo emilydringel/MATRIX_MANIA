@@ -53,7 +53,7 @@ rule token = parse
 | "import"   { IMPORT }
 | "define"   { DEFINE }
 | "def"      { DEF }
-| digits as lxm { LITERAL(int_of_string lxm) }
+| digits as lxm { INTLIT(int_of_string lxm) }
 | float as lxm { FLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | eof { EOF }
