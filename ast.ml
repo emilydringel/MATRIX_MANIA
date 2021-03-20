@@ -7,7 +7,7 @@ type op = Add | Sub | Mult | Div | ISEQ | NOTEQ | Less | Leq | Greater | Geq |
 
 type uop = Not | Neg | Size
 
-type typ = Int | Float | Void | Matrix of typ * int  
+type typ = Int | Float | Void | Matrix of typ * int * int  
 
 type bind = typ * string
 
@@ -71,7 +71,7 @@ let rec string_of_typ (t) =
     Int -> "int"
   | Float -> "float"
   | Void -> "void" 
-  | Matrix(t, i) -> "matrix of: " ^ string_of_int i
+  | Matrix(t, i, i2) -> "matrix of type: " ^ string_of_typ t ^ " rows: " ^ string_of_int i ^ " columns: " ^ string_of_int i2
 
 let string_of_uop (o) =
   match o with
