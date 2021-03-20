@@ -5,6 +5,7 @@ open Ast
 type sexpr = typ * sx
 and sx =
     SLiteral of int
+  | StrLiteral of string
   | SFliteral of string
   | SMatrixLit of string 
   | SId of string
@@ -12,7 +13,7 @@ and sx =
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
   | SCall of string * sexpr list
-  | SAccess of sexpr * sint * sint
+  | SAccess of sexpr * int * int (*SAccess of sexpr * sint * sint*)
   | SNoexpr
 
 type sstmt =
@@ -33,19 +34,24 @@ type sfunc_decl = {
     sbody : sstmt list;
   }
 
+type svar_decl = {
+    svar: bind
+  }
+
 type sprogram = bind list * sfunc_decl list
 
 (* Pretty-printing functions *)
 
 let rec string_of_sexpr (t, e) =
-  "(" ^ string_of_typ t ^ " : " ^ (match e with
+  "(" ^ string_of_typ t ^ " : " ^ match e with (*Got rid of ( to compile)*)
     SLiteral(l) -> string_of_int l
   (*
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
   *)
-  | SMatrixLit(l) -> l (*maybe???*)
+  | SMatrixLit(l) -> l (*maybe??? -- I think this is right because its a string - Emily*)
   | SFliteral(l) -> l
+  | StrLiteral(l) -> l (*This is inconsistent in our code but I think it makes sense to have them*)
   | SId(s) -> s
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
@@ -53,10 +59,9 @@ let rec string_of_sexpr (t, e) =
   | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-  | SNoexpr -> ""
-				  ) ^ ")"		
+  | SNoexpr -> "(" ^ ")"	(* Edited to make run??*)	
   | SAccess(e, i1, i2) ->    
-      string_of_sexpr  ^ " " ^ string_of_sint i1 ^ " " ^ string_of_sint e2
+      string_of_sexpr e ^ " " ^ string_of_int i1 ^ " " ^ string_of_int i2 (* changed from sint to int *)
 
 let rec string_of_sstmt = function
     SBlock(stmts) ->
@@ -72,15 +77,21 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
 (*break and continue added here? *)
+  | SBreak -> "break"
+  | SContinue -> "continue"
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
   fdecl.sfname ^ "(" ^ String.concat ", " (List.map snd fdecl.sformals) ^
   ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.slocals) ^
+  String.concat "" (List.map string_of_vdecl fdecl.slocals) ^ (* SOMETHING HERE IS WRONG *)
   String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
   "}\n"
 
 let string_of_sprogram (vars, funcs) =
   String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
   String.concat "\n" (List.map string_of_sfdecl funcs)
+
+
+
+

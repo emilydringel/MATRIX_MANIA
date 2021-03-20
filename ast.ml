@@ -14,7 +14,7 @@ type bind = typ * string
 type expr =
     Literal of int
   | StrLiteral of string
-  | Fliteral of float
+  | Fliteral of string
   | MatrixLit of string 
   | Id of string
   | Binop of expr * op * expr
@@ -42,6 +42,10 @@ type func_decl = {
     body : stmt list;
   }
 
+  type var_decl = {
+    var: bind
+  }
+
 type program = bind list * func_decl list
 
 (* Pretty-printing functions *)
@@ -60,3 +64,21 @@ let string_of_op = function
   | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
+
+(*Added - for pretty printing*)
+let rec string_of_typ (t) =
+  match t with
+    Int -> "int"
+  | Float -> "float"
+  | Void -> "void" 
+  | Matrix(t, i) -> "matrix of: " ^ string_of_int i
+
+let string_of_uop (o) =
+  match o with
+    Not -> "!"
+  | Neg -> "-"
+  | Size -> "size"
+
+let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+
+
