@@ -5,7 +5,7 @@ open Ast
 type sexpr = typ * sx
 and sx =
     SLiteral of int
-  | StrLiteral of string
+  | SStrLiteral of string
   | SFliteral of string
   | SMatrixLit of string 
   | SId of string
@@ -51,7 +51,7 @@ let rec string_of_sexpr (t, e) =
   *)
   | SMatrixLit(l) -> l (*maybe??? -- I think this is right because its a string - Emily*)
   | SFliteral(l) -> l
-  | StrLiteral(l) -> l (*This is inconsistent in our code but I think it makes sense to have them*)
+  | SStrLiteral(l) -> l (*This is inconsistent in our code but I think it makes sense to have them*)
   | SId(s) -> s
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
