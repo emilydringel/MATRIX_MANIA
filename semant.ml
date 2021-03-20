@@ -106,8 +106,8 @@ let check (globals, functions) =
       | MatrixLit l -> (Int, SMatrixLit l)
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (Int s, SId s) (*should be type of identifier*)
-      | Assign(var, e) as ex -> (Int, SAssign(var, (rt, e')))
+      | Id s       -> (Int, SId s) (*should be type of identifier*)
+      | Assign(var, e) -> (Int, SAssign(var, expr e))
           (*let lt = Int (*type_of_identifier var*)
           and (rt, e') = (Int, Sexpr e')*)
           
@@ -115,7 +115,7 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))*)
-      | Unop(op, e) -> (Int, SUnop(op, (t, e')))
+      | Unop(op, e) -> (Int, SUnop(op, expr e))
       (*
           let (t, e') = expr e in
           let ty = match op with
@@ -125,7 +125,7 @@ let check (globals, functions) =
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr ex))
           in (ty, SUnop(op, (t, e')))*)
-      | Binop(e1, op, e2) -> (Int, SBinop(e1, op, e2))
+      | Binop(e1, op, e2) -> (Int, SBinop(expr e1, op, expr e2))
       (*
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in
@@ -145,23 +145,25 @@ let check (globals, functions) =
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
           *)
-      | Call(fname, args) -> (Int, SCall(fname, args))
-      (*
+      | Call(fname, args) -> 
+        (*
           let fd = find_func fname in
           let param_length = List.length fd.formals in
           if List.length args != param_length then
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
-          else let check_call (ft, _) e = 
+          else 
+          
+          let check_call e = 
             let (et, e') = expr e in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
           in 
-          let args' = List.map2 check_call fd.formals args
-          in (fd.typ, SCall(fname, args'))
           *)
-        | Access(e1, l1, l2) -> (Int, SAccess(e1, l1, l2))
+          let args' = List.map expr args
+          in (Int, SCall(fname, args'))
+      | Access(e1, l1, l2) -> (Int, SAccess(expr e1, l1, l2))
     in
 (* CHECK IF 0 or 1:
     let check_bool_expr e = 
@@ -182,7 +184,7 @@ let check (globals, functions) =
         if t = func.typ then SReturn (t, e') 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
+		   string_of_typ func.typ ^ " in " ^ string_of_sexpr (expr e)))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
