@@ -40,7 +40,7 @@ let check (globals, functions) =
       formals = [(ty, "x")];
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", Int);
-			                        (* ("printm", Matrix(t,i)); How to do this *)
+			                         ("printm", Matrix(t,i,j)); (* Not working *)
 			                         ("printf", Float)]
   in
 
@@ -104,30 +104,27 @@ let check (globals, functions) =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
       | Fliteral l -> (Float, SFliteral l)
       | StrLiteral l -> (Int, SStrLiteral l)
-      | MatrixLit l -> (Matrix, SMatrixLit l)
+      | MatrixLit l -> (Matrix(Int,0,0), SMatrixLit l) (*Need to fix*)
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s) (*should be type of identifier*)
       | Assign(var, e) -> 
           let lt = Int (*type_of_identifier var*)
-          and (rt, e') = (Int, Sexpr e')
-          
-          expr e in
+          and (rt, e') = expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_expr ex
+            string_of_typ rt ^ " in " ^ string_of_sexpr (rt, e')
           in (check_assign lt rt err, SAssign(var, (rt, e')))
       | Unop(op, e) ->
           let (t, e') = expr e in
           let ty = match op with
             Neg when t = Int || t = Float -> t
-          | Not when check_bool_expr e' -> Int
-          | Size when t = Matrix(_,_) -> (Int, Int) (* How do we say any size/type !!!! *)
+          | Not when t = Int -> Int (* should check whether 0 or 1 *)
+          | Size when t = Matrix(t,i,j) -> (Int, Int) (* How do we say any size/type *)
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr ex))
@@ -172,13 +169,12 @@ let check (globals, functions) =
           in (Int, SCall(fname, args'))
       | Access(e1, l1, l2) -> (Int, SAccess(expr e1, l1, l2))
     in
-
+    
     let check_bool_expr e = 
       let (t', e') = expr e
       and err = "expected one or two in " ^ string_of_sexpr (t', e')
       in if e'!=1 && e'!=0 then raise (Failure err) else (t', e') 
     in
-    
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
