@@ -8,9 +8,10 @@ let translate (globals, functions) =
 	let the_module = L.create_module context "MatrixMania" in
 
 	let i32_t = L.i32_type context
+	and i8_t = L.i8t_type context
 	and float_t    = L.double_type context
 	and void_t     = L.void_type   context in
-
+	
 	let i8ptr_t = L.pointer_type i8_t in
 
 	let ltype_of_typ = function
