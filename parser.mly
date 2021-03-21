@@ -36,34 +36,38 @@
 %%
 
 program:
-  imports defines decls main EOF { $2 }
+  imports defines fdecls main EOF { ($1, $2, $3, $4) }
 
 imports:
-   /* nothing */               { []     }
-  | imports IMPORT ID SEMI { $3 :: $1 }
+   /* nothing */                { []     }
+  | imports IMPORT ID SEMI      { $3 :: $1 }
 
 defines:
-   /* nothing */               { []     }
-  | defines DEFINE ID expr SEMI { $3 :: Define($3, $4) }
+   /* nothing */                { []     }
+  | defines DEFINE typ ID expr SEMI { ($3, $4, $5) :: $1 }
 
 main:
   DEF MAIN LPAREN RPAREN LBRACE stmt_list RBRACE
-    { { 
-	 body = List.rev $6 } }
+    { List.rev $6 }
+
+fdecls:
+   /* nothing */  { []       }
+ | fdecls fdecl   { $2 :: $1 }
 
 
-decls:
-   /* nothing */ { ([], [])               }
+/*decls:
+    nothing { ([], [])               }
  | decls vdecl { (($2 :: fst $1), snd $1) }
- | decls fdecl { (fst $1, ($2 :: snd $1)) }
+ | decls fdecl { (fst $1, ($2 :: snd $1)) } */
 
 fdecl:
    DEF typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
-   /* TOOK OUT VDECL_LIST */
-     { { fname = $3;
-	 formals = List.rev $5;
-	 body = List.rev $8
-	 typ = $2;  } }
+     { {
+        typ = $2;   
+        fname = $3;
+	      formals = List.rev $5;
+	      body = List.rev $8
+	   } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -87,8 +91,8 @@ typ:
 /*  | vdecl_list vdecl { $2 :: $1 } */
 
 
-vdecl:
-   typ ID ASSIGN expr SEMI { $1 }
+/*vdecl:
+   typ ID ASSIGN expr SEMI { $1 }*/
 
 stmt_list:
     /* nothing */  { [] }
@@ -102,7 +106,8 @@ elif:
   ELIF LPAREN expr RPAREN LBRACE stmt RBRACE { ($3, $6) }
 
 stmt:
-    expr SEMI                               { Expr $1               }
+    typ ID ASSIGN expr SEMI                 { VarDecl($1, $2, $4) }
+  | expr SEMI                               { Expr $1               }
   | BREAK SEMI                              { Break                 }
   | CONTINUE SEMI                           { Continue              }
   | RETURN expr_opt SEMI                    { Return $2             }
@@ -120,9 +125,9 @@ expr_opt:
   | expr          { $1 }
 
 expr:
-    INTLIT          { Literal($1)            }
-  | STRLIT	    { StringLit($1)          }
-  | FLIT	     { Fliteral($1)           }
+    INTLIT           { IntLit($1)            }
+/*| STRLIT	         { StringLit($1)          }*/
+  | FLIT	           { FLit($1)           }
   | matrix_lit       { MatrixLit($1)          } 
  /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
@@ -145,7 +150,7 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
-  | matrix_access    { Literal($1)      }
+  | matrix_access    { $1      }
 /*
 matrix:
   typ LBRACK INTLIT RBRACK LBRACK INTLIT RBRACK {   }

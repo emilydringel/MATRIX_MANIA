@@ -2,20 +2,22 @@
 
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | ISEQ | NOTEQ | Less | Leq | Greater | Geq |
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or | Mod
 
 type uop = Not | Neg | Size
 
-type typ = Int | Float | Void | Matrix of typ * int * int  
+type typ = Int | Float | Void | Matrix of typ (* * int * int  *)
 
 type bind = typ * string
 
+type import = string
+
 type expr =
-    Literal of int
-  | StrLiteral of string
-  | Fliteral of string
-  | MatrixLit of string 
+    IntLit of int
+(*| StrLiteral of string *)
+  | FLit of string
+  | MatrixLit of (expr list) list 
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -26,11 +28,12 @@ type expr =
 
 type stmt =
     Block of stmt list
+  | VarDecl of typ * string * expr
   | Expr of expr
   | Return of expr
-  | If of expr * stmt * stmt
-  | For of expr * expr * expr * stmt
-  | While of expr * stmt
+  | If of expr * stmt * (expr * stmt) list * stmt
+  | For of expr * expr * expr * stmt list
+  | While of expr * stmt list
   | Break (* Maybe *)
   | Continue 
 
@@ -38,7 +41,7 @@ type func_decl = {
     typ : typ;
     fname : string;
     formals : bind list;
-    locals : bind list;
+    (*locals : bind list;*)
     body : stmt list;
   }
 
@@ -46,7 +49,11 @@ type func_decl = {
     var: bind
   }
 
-type program = bind list * func_decl list
+type main = stmt list
+
+type define = typ * string * expr  
+
+type program = import list * define list * func_decl list * main 
 
 (* Pretty-printing functions *)
 
@@ -55,8 +62,8 @@ let string_of_op = function
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
-  | ISEQ -> "=="
-  | NOTEQ -> "!="
+  | Equal -> "=="
+  | Neq -> "!="
   | Less -> "<"
   | Mod -> "%"
   | Leq -> "<="
@@ -71,7 +78,7 @@ let rec string_of_typ (t) =
     Int -> "int"
   | Float -> "float"
   | Void -> "void" 
-  | Matrix(t, i, i2) -> "matrix of type: " ^ string_of_typ t ^ " rows: " ^ string_of_int i ^ " columns: " ^ string_of_int i2
+  | Matrix(t (*, i, i2*)) -> "matrix of type: " ^ string_of_typ t (*^ " rows: " ^ string_of_int i ^ " columns: " ^ string_of_int i2 *)
 
 let string_of_uop (o) =
   match o with
