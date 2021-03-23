@@ -1,5 +1,7 @@
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
 
+(* TO DO: FIX MATRIXLIT and IF/ELSEIF PRETTY PRINT *)
+
 open Ast
 
 type sexpr = typ * sx

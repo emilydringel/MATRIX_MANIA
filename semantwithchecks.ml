@@ -1,5 +1,12 @@
 (* Semantic checking for the MicroC compiler *)
 
+(* BIGGEST PROBLEMS: 
+1. How to keep track of the matrix size? Maybe sx should be different for matrices?
+2. How do you say matrix of any type/size -- ex. in printing
+3. Getting matrix size from a matrix literal -- using lists, should be not too hard
+4. Finish expr and check_stmt from chalkboard notes
+*)
+
 open Ast
 open Sast
 

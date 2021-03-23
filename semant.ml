@@ -104,8 +104,9 @@ let check (globals, functions) =
       | FLit l -> (Float, SFliteral l)
       (*| StrLiteral l -> (Int, SStrLiteral l)*)
       | MatrixLit l -> 
-      let rec turn_to_expr l = function
-        h::t -> (expr h)::(turn_to_expr t) in
+      let rec turn_to_expr l = match l with
+        [] -> []
+      | h::t -> (expr h)::(turn_to_expr t) in
       (Int, SMatrixLit (List.map turn_to_expr l))
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
@@ -179,10 +180,13 @@ let check (globals, functions) =
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)
-      | For(e1, e2, e3, st) ->
-	  SFor(expr e1, expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(expr p, check_stmt s)
+      | If(p, b1, l, b2) -> 
+      let rec elif_to_expr (e,s) = match (e,s) with
+        (e,s) -> (expr e, check_stmt s) in
+      SIf(expr p, check_stmt b1, List.map elif_to_expr l, check_stmt b2)
+      | For(e1, e2, e3, l) ->
+	  SFor(expr e1, expr e2, expr e3, List.map check_stmt l)
+      | While(p, l) -> SWhile(expr p, List.map check_stmt l)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
         else raise (
@@ -201,12 +205,13 @@ let check (globals, functions) =
           in SBlock(check_stmt_list sl)
       | Break -> SBreak
       | Continue -> SContinue
+      | VarDecl(t, s, e) -> SVarDecl(t,s, expr e)
 
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
-      slocals  = func.locals;
+      (*slocals  = func.locals;*)
       sbody = match check_stmt (Block func.body) with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
