@@ -73,7 +73,7 @@ let check (globals, functions) =
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
-    check_binds "local" func.locals;
+    (*check_binds "local" func.locals;*)
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -100,10 +100,13 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
-      | StrLiteral l -> (Int, SStrLiteral l)
-      | MatrixLit l -> (Int, SMatrixLit l)
+        IntLit  l -> (Int, SLiteral l)
+      | FLit l -> (Float, SFliteral l)
+      (*| StrLiteral l -> (Int, SStrLiteral l)*)
+      | MatrixLit l -> 
+      let rec turn_to_expr l = function
+        h::t -> (expr h)::(turn_to_expr t) in
+      (Int, SMatrixLit (List.map turn_to_expr l))
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (Int, SId s) (*should be type of identifier*)
