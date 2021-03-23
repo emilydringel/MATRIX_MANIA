@@ -1,3 +1,3 @@
 def main( ){
- printf(0);
+ printf("%d",0);
 }
