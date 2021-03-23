@@ -65,7 +65,7 @@ let translate (globals, functions) =
 	    (* Construct the function's "locals": formal arguments and locally
 	       declared variables.  Allocate each on the stack, initialize their
 	       value, if appropriate, and remember their values in the "locals" map *)
-		let local_vars =
+		(*let local_vars =
 			let add_formal m (t, n) p = 
 				L.set_value_name n p;
 				let local = L.build_alloca (ltype_of_typ t) n builder in
@@ -89,13 +89,14 @@ let translate (globals, functions) =
 		let lookup n = try StringMap.find n local_vars
 			with Not_found -> StringMap.find n global_vars
 		in
+		*)
 
 	    (* Construct code for an expression; return its value *)
 	    let rec expr builder ((_, e) : sexpr) = match e with
 			SLiteral i  -> L.const_int i32_t i
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
-	      | SId s -> L.build_load(lookup s) s builder 
+	     (* | SId s -> L.build_load(lookup s) s builder *)
 	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
