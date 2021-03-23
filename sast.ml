@@ -1,7 +1,5 @@
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
 
-(* TO DO: FIX MATRIXLIT and IF/ELSEIF PRETTY PRINT *)
-
 open Ast
 
 type sexpr = typ * sx
@@ -60,7 +58,12 @@ let rec string_of_sexpr (t, e) =
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
   *)
-  | SMatrixLit(l) -> "matrix lit!"(* Only sort of works *)
+  | SMatrixLit(l) -> 
+  let string_of_row l =
+    String.concat "" (List.map string_of_sexpr l)
+  in
+  String.concat "" (List.map string_of_row l)
+  (*"matrix lit!" Only sort of works *)
   (*let print_list l =
     let rec print_elements l = function
       | [] -> ()
@@ -96,12 +99,12 @@ let rec string_of_sstmt = function
   (*| SIf(e, s, SBlock([])) ->
       "if (" ^ string_of_sexpr e ^ ")\n" ^ string_of_sstmt s *)
   | SIf(e, s1, l, s3) -> 
-  (*let concat_elif_stmt (e,s) = function
-    (e,s) -> "else if (" ^ string_of_sexpr e ^ ")\n" ^
+  let string_of_elif_stmt (e,s) = 
+    "else if (" ^ string_of_sexpr e ^ ")\n" ^
     string_of_sstmt s
-  in*)
+  in
   "if (" ^ string_of_sexpr e ^ ")\n" ^
-  string_of_sstmt s1 ^ "else ifs!!!!" ^ "else\n" ^ string_of_sstmt s3
+  string_of_sstmt s1 ^ String.concat "" (List.map string_of_elif_stmt l) ^ "else\n" ^ string_of_sstmt s3
   (*| SIf(e, s1, s2) ->  "if (" ^ string_of_sexpr e ^ ")\n" ^
       string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2*)
       (*| SFor of sexpr * sexpr * sexpr * sstmt list*)
