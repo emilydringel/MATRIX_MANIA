@@ -112,9 +112,16 @@ let rec string_of_stmt = function
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ ";\n";
   | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
-  | If(e, s, elifs, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
+  (*| If(e, s, elifs, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
   | If(e, s1, elifs, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
-      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2 *)
+  | If(e, s1, l, s3) -> 
+  let string_of_elif_stmt (e,s) = 
+    "else if (" ^ string_of_expr e ^ ")\n" ^
+    string_of_stmt s
+  in
+  "if (" ^ string_of_expr e ^ ")\n" ^
+  string_of_stmt s1 ^ String.concat "" (List.map string_of_elif_stmt l) ^ "else\n" ^ string_of_stmt s3
   | For(e1, e2, e3, s) ->
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ String.concat "\n" (List.map string_of_stmt s)
@@ -133,4 +140,6 @@ let string_of_fdecl fdecl =
 
 let string_of_program (imports, defines, funcs) =
   (*String.concat "" (List.map string_of_vdecl defines) ^ "\n" ^*)
-  String.concat "\n" (List.map string_of_fdecl funcs)
+  "Imports: \n " ^ String.concat "," imports ^ "\n"
+  ^ "Defines: \n " ^ String.concat "," defines ^ "\n"
+  ^ String.concat "\n" (List.map string_of_fdecl funcs)
