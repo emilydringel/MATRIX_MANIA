@@ -49,11 +49,11 @@ type func_decl = {
     var: bind
   }
 
-type main = stmt list
+(*type main = stmt list*)
 
 type define = typ * string * expr  
 
-type program = import list * define list * func_decl list * main 
+type program = import list * define list * func_decl list (** main *)
 
 (* Pretty-printing functions *)
 
@@ -97,6 +97,13 @@ let rec string_of_expr = function
 | Call(f, el) ->
     f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 | Noexpr -> ""
+| MatrixLit(l) -> 
+let string_of_row l =
+  String.concat "" (List.map string_of_expr l)
+in
+String.concat "" (List.map string_of_row l)
+| Access(e, i1, i2) ->    
+string_of_expr e ^ " " ^ string_of_int i1 ^ " " ^ string_of_int i2 
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
@@ -112,6 +119,9 @@ let rec string_of_stmt = function
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ String.concat "\n" (List.map string_of_stmt s)
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ String.concat "\n" (List.map string_of_stmt s)
+  | Break -> "break \n"
+  | Continue -> "continue \n"
+  | VarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_expr e ^ "\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
@@ -121,6 +131,6 @@ let string_of_fdecl fdecl =
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
-let string_of_program (imports, defines, funcs, main) =
+let string_of_program (imports, defines, funcs) =
   (*String.concat "" (List.map string_of_vdecl defines) ^ "\n" ^*)
   String.concat "\n" (List.map string_of_fdecl funcs)

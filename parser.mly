@@ -36,7 +36,7 @@
 %%
 
 program:
-  imports defines fdecls main EOF { ($1, $2, $3, $4) }
+  imports defines fdecls /*main*/ EOF { ($1, $2, $3) }
 
 imports:
    /* nothing */                { []     }
@@ -46,10 +46,11 @@ defines:
    /* nothing */                { []     }
   | defines DEFINE typ ID expr SEMI { ($3, $4, $5) :: $1 }
 
+/*
 main:
   DEF MAIN LPAREN RPAREN LBRACE stmt_list RBRACE
     { List.rev $6 }
-
+*/
 fdecls:
    /* nothing */  { []       }
  | fdecls fdecl   { $2 :: $1 }

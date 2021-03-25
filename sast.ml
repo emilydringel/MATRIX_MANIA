@@ -34,18 +34,18 @@ type sfunc_decl = {
     (*slocals : bind list;*)
     sbody : sstmt list;
   }
-
+(*
 type svar_decl = {
     svar: bind
   }
-
-type smain = sstmt list
+*)
+(*type smain = sstmt list*)
 
 type sdefine = typ * string * sexpr
 
 type simport = string
 
-type sprogram = simport list * sdefine list * sfunc_decl list * smain 
+type sprogram = simport list * sdefine list * sfunc_decl list (* smain *)
 
 (* Pretty-printing functions *)
 
@@ -89,7 +89,7 @@ let rec string_of_sexpr (t, e) =
   | SNoexpr -> "(" ^ ")"	(* Edited to make run??*)	
   | SAccess(e, i1, i2) ->    
       string_of_sexpr e ^ " " ^ string_of_int i1 ^ " " ^ string_of_int i2 (* changed from sint to int *)
-  | _ -> ""
+ (* | _ -> "" *)
 
 let rec string_of_sstmt = function
     SBlock(stmts) ->
@@ -113,9 +113,9 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ String.concat "" (List.map string_of_sstmt l)
   | SWhile(e, l) -> "while (" ^ string_of_sexpr e ^ ") " ^ String.concat "" (List.map string_of_sstmt l)
 (*break and continue added here? *)
-  | SBreak -> "break"
-  | SContinue -> "continue"
-  | SVarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_sexpr e 
+  | SBreak -> "break \n"
+  | SContinue -> "continue \n"
+  | SVarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_sexpr e ^ "\n"
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
@@ -125,8 +125,8 @@ let string_of_sfdecl fdecl =
   String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
   "}\n"
 
-let string_of_sprogram (vars, funcs) =
-  String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
+let string_of_sprogram (funcs) =
+  (*String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^*)
   String.concat "\n" (List.map string_of_sfdecl funcs)
 
 
