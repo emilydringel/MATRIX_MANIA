@@ -34,7 +34,7 @@ let translate (functions) =
 	(* Declare external functions *)
 
 	let printf_t : L.lltype =
-		L.var_arg_function_type i32_t [| i32_t |] in
+		L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
 	let printf_func : L.llvalue =
 		L.declare_function "printf" printf_t the_module in
 

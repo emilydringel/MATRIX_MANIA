@@ -1,3 +1,3 @@
 def int main( ){
- printf(0);
+ print(0);
 }
