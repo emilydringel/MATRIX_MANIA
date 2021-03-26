@@ -137,9 +137,11 @@ let string_of_fdecl fdecl =
   (*String.concat "" (List.map string_of_vdecl fdecl.locals) ^*)
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
-
 let string_of_program (imports, defines, funcs) =
+  let print_define (t, s, e) =
+    string_of_typ t ^ " " ^ s ^ "=" ^ string_of_expr e
+  in
   (*String.concat "" (List.map string_of_vdecl defines) ^ "\n" ^*)
   "Imports: \n " ^ String.concat "," imports ^ "\n"
-  ^ "Defines: \n " ^ String.concat "," defines ^ "\n"
+  ^ "Defines: \n " ^ String.concat "\n" (List.map print_define defines) ^ "\n"
   ^ String.concat "\n" (List.map string_of_fdecl funcs)

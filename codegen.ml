@@ -5,7 +5,7 @@ open Sast
 
 module StringMap = Map.Make(String)
 
-let translate (globals, functions) =
+let translate (functions) =
 	let context = L.global_context () in
 	let the_module = L.create_module context "MatrixMania" in
 
@@ -21,7 +21,7 @@ let translate (globals, functions) =
 	in
 
 	(* Declare and store global variables *)
-
+(*
 	let global_vars : L.llvalue StringMap.t =
 		let global_var m (t, n) = 
 			let init = match t with
@@ -29,7 +29,7 @@ let translate (globals, functions) =
 			| _ -> L.const_int (ltype_of_typ t) 0
 			in StringMap.add n (L.define_global n init the_module) m in
 		List.fold_left global_var StringMap.empty globals in
-
+*)
 	
 	(* Declare external functions *)
 

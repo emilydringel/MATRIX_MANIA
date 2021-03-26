@@ -9,7 +9,7 @@ open Sast
    Check each global variable, then check each function *)
 
 (*let check (globals, functions) = *)
-let check (imports, defines, functions, main) =
+let check (imports, defines, functions) =
 
   (* Check binds - Verify a list of bindings has no void types or duplicate names *)
 
@@ -217,4 +217,4 @@ let check (imports, defines, functions, main) =
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
-  in ([], List.map check_function functions)
+  in (List.map check_function functions)

@@ -49,7 +49,7 @@ rule token = parse
 | "matrix"   { MATRIX }
 | "void"     { VOID }
 | "size"     { SIZE }
-| "main"     { MAIN }
+(* | "main"     { MAIN } *)
 | "import"   { IMPORT }
 | "define"   { DEFINE }
 | "def"      { DEF }

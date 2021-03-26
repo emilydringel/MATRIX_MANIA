@@ -1,3 +1,3 @@
-def main( ){
+def int main( ){
  printf(0);
 }
