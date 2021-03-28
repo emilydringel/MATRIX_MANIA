@@ -11,6 +11,7 @@ let translate (functions) =
 
 	let i32_t = L.i32_type context
 	and i8_t = L.i8_type context
+	and i1_t = L.i1_type context
 	and float_t    = L.double_type context
 	and void_t     = L.void_type   context in
 
@@ -65,7 +66,7 @@ let translate (functions) =
 	    (* Construct the function's "locals": formal arguments and locally
 	       declared variables.  Allocate each on the stack, initialize their
 	       value, if appropriate, and remember their values in the "locals" map *)
-		(*let local_vars =
+		let local_vars =
 			let add_formal m (t, n) p = 
 				L.set_value_name n p;
 				let local = L.build_alloca (ltype_of_typ t) n builder in
@@ -79,17 +80,13 @@ let translate (functions) =
 				in StringMap.add n local_var m 
 			in
 
-			let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
-				(Array.to_list (L.params the_function)) in
-			(*List.fold_left add_local formals fdecl.slocals
-		in *)
-
+			List.fold_left2 add_formal StringMap.empty fdecl.sformals
+				(Array.to_list (L.params the_function))
+		in 
 	    (* Return the value for a variable or formal argument.
-	       Check local names first, then global names *)
-		let lookup n = try StringMap.find n local_vars
-			with Not_found -> StringMap.find n global_vars
+	       Check local names  *)
+		let lookup n = StringMap.find n local_vars
 		in
-		*)
 
 	    (* Construct code for an expression; return its value *)
 	    let rec expr builder ((_, e) : sexpr) = match e with
@@ -135,6 +132,48 @@ let translate (functions) =
 	                              (* Build return statement *)
 	                            | _ -> L.build_ret (expr builder e) builder );
 	                     builder
+				| SIf (predicate, then_stmt, elif_list, else_stmt) ->
+							let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
+							let bool_val = L.const_int i1_t int_val in
+							(*let bool_val = L.const_int i1_t (if 0 then 1 else 0) in *)
+							let merge_bb = L.append_block context "merge" the_function in
+										let build_br_merge = L.build_br merge_bb in (* partial function *)
+					
+							let then_bb = L.append_block context "then" the_function in
+							add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+								build_br_merge;
+					
+							let else_bb = L.append_block context "else" the_function in
+							add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+								build_br_merge;
+					
+							ignore(L.build_cond_br bool_val then_bb else_bb builder);
+						L.builder_at_end context merge_bb
+					| SWhile (predicate, body) ->
+						let pred_bb = L.append_block context "while" the_function in
+						ignore(L.build_br pred_bb builder);
+				
+						let body_bb = L.append_block context "while_body" the_function in
+							(match body with
+							[a] -> 
+								add_terminal (stmt (L.builder_at_end context body_bb) a)
+									(L.build_br pred_bb);
+							| _ -> ignore(List.fold_left stmt builder body););				
+				
+						let pred_builder = L.builder_at_end context pred_bb in
+						let bool_val = expr pred_builder predicate in
+				
+						let merge_bb = L.append_block context "merge" the_function in
+						ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+						L.builder_at_end context merge_bb
+				
+							(* Implement for loops as while loops *)
+					| SFor (e1, e2, e3, body) -> stmt builder
+							( SBlock [SExpr e1 ; SWhile (e2, body @ [SExpr e3]) ] )
+					| SVarDecl (typ, id, e) -> 
+						L.build_alloca (ltype_of_typ typ) id builder;
+						let e' = expr builder e in
+							ignore(L.build_store e' (lookup id) builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)

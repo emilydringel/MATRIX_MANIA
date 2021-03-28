@@ -22,7 +22,7 @@ type sstmt =
   | SExpr of sexpr
   | SReturn of sexpr
   | SIf of sexpr * sstmt * (sexpr * sstmt) list * sstmt
-  | SFor of sexpr * sexpr * sexpr * sstmt list
+  | SFor of sexpr * sexpr * sexpr * (sstmt list)
   | SWhile of sexpr * sstmt list
   | SBreak (* Maybe *)
   | SContinue 

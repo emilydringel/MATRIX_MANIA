@@ -32,7 +32,7 @@ type stmt =
   | Expr of expr
   | Return of expr
   | If of expr * stmt * (expr * stmt) list * stmt
-  | For of expr * expr * expr * stmt list
+  | For of expr * expr * expr * (stmt list)
   | While of expr * stmt list
   | Break (* Maybe *)
   | Continue 
