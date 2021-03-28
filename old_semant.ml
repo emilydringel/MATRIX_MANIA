@@ -1,23 +1,15 @@
 (* Semantic checking for the MicroC compiler *)
 
-(* BIGGEST PROBLEMS: 
-1. How to keep track of the matrix size? Maybe sx should be different for matrices? -- don't do this
-2. How do you say matrix of any type/size -- ex. in printing
-3. Getting matrix size from a matrix literal -- using lists, should be not too hard
-4. Finish expr and check_stmt from chalkboard notes
-*)
-
 open Ast
 open Sast
-
-module StringMap = Map.Make(String)
 
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
    Check each global variable, then check each function *)
 
-let check (globals, functions) =
+(*let check (globals, functions) = *)
+let check (imports, defines, functions) =
 
   (* Check binds - Verify a list of bindings has no void types or duplicate names *)
 
@@ -34,12 +26,12 @@ let check (globals, functions) =
     in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
   in
 
-  check_binds "global" globals;
+  (*check_binds "global" globals;*) (* we don't have global variables *)
 
   (**** Check functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-  
+  (* DONT HAVE ANY)
   let built_in_decls = 
     let add_bind map (name, ty) = StringMap.add name {
       typ = Void;
@@ -47,12 +39,13 @@ let check (globals, functions) =
       formals = [(ty, "x")];
       locals = []; body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", Int);
-			                         ("printm", Matrix(t,i,j)); (* Not working *)
-			                         ("printf", Float)]
+			                         ("printb", Bool);
+			                         ("printf", Float);
+			                         ("printbig", Int) ]
   in
-
+*)
   (* Add function name to symbol table *)
-  
+  (*
   let add_func map fd = 
     let built_in_err = "function " ^ fd.fname ^ " may not be defined"
     and dup_err = "duplicate function " ^ fd.fname
@@ -63,79 +56,80 @@ let check (globals, functions) =
        | _ when StringMap.mem n map -> make_err dup_err  
        | _ ->  StringMap.add n fd map 
   in
-  
+  *)
 
-  (* Collect all function names into one symbol table *)
+  (* Collect all function names into one symbol table 
   let function_decls = List.fold_left add_func built_in_decls functions
   in
-  
-  (* Return a function from our symbol table *)
+  *)
+  (* Return a function from our symbol table
   let find_func s = 
     try StringMap.find s function_decls
     with Not_found -> raise (Failure ("unrecognized function " ^ s))
   in
-
-
-  let _ = find_func "main" in (* Ensure "main" is defined *)
+*)
+(*
+  let _ = find_func "main" in  Ensure "main" is defined *)
 
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
-    check_binds "local" func.locals;
+    (*check_binds "local" func.locals;*)
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-       
+       (*
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
-    
+    *)
 
     (* Build local symbol table of variables for this function *)
-    
+    (*
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (globals @ func.formals @ func.locals )
     in
-    
-    (* FUNCTION THAT READS A MATRIX LIT AND GETS DIMENSIONS AND TYPE 
-    type - look at token in between [ , or [ ; or []
-    for size -- go through the whole thing, increase rows for commas before ; increase columns after ;
-    How to pattern match string/other alternative to for loop
-    can we use what we have in parser?
     *)
 
     (* Return a variable from our local symbol table *)
-    
+    (*
     let type_of_identifier s =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
+    *)
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
-      | StrLiteral l -> (Int, SStrLiteral l)
-      | MatrixLit l -> (Matrix(Int,0,0), SMatrixLit l) (*Need to fix*)
+        IntLit  l -> (Int, SLiteral l)
+      | FLit l -> (Float, SFliteral l)
+      (*| StrLiteral l -> (Int, SStrLiteral l)*)
+      | MatrixLit l -> 
+      let rec turn_to_expr l = match l with
+        [] -> []
+      | h::t -> (expr h)::(turn_to_expr t) in
+      (Int, SMatrixLit (List.map turn_to_expr l))
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s, SId s) (*should be type of identifier*)
-      | Assign(var, e) -> 
-          let lt = Int (*type_of_identifier var*)
-          and (rt, e') = expr e in
+      | Id s       -> (Int, SId s) (*should be type of identifier*)
+      | Assign(var, e) -> (Int, SAssign(var, expr e))
+          (*let lt = Int (*type_of_identifier var*)
+          and (rt, e') = (Int, Sexpr e')*)
+          
+          (*expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_sexpr (rt, e')
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
-      | Unop(op, e) ->
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign(var, (rt, e')))*)
+      | Unop(op, e) -> (Int, SUnop(op, expr e))
+      (*
           let (t, e') = expr e in
           let ty = match op with
             Neg when t = Int || t = Float -> t
-          | Not when t = Int -> Int (* should check whether 0 or 1 *)
-          | Size when t = Matrix(t,i,j) -> (Int, Int) (* How do we say any size/type *)
+          | Not when t = Bool -> Bool
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr ex))
-          in (ty, SUnop(op, (t, e')))
+          in (ty, SUnop(op, (t, e')))*)
       | Binop(e1, op, e2) -> (Int, SBinop(expr e1, op, expr e2))
       (*
           let (t1, e1') = expr e1 
@@ -176,20 +170,24 @@ let check (globals, functions) =
           in (Int, SCall(fname, args'))
       | Access(e1, l1, l2) -> (Int, SAccess(expr e1, l1, l2))
     in
-    
+(* CHECK IF 0 or 1:
     let check_bool_expr e = 
       let (t', e') = expr e
-      and err = "expected one or two in " ^ string_of_sexpr (t', e')
-      in if e'!=1 && e'!=0 then raise (Failure err) else (t', e') 
+      and err = "expected Boolean expression in " ^ string_of_expr e
+      in if t' != Bool then raise (Failure err) else (t', e') 
     in
+    *)
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)
-      | For(e1, e2, e3, st) ->
-	  SFor(expr e1, expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(expr p, check_stmt s)
+      | If(p, b1, l, b2) -> 
+      let rec elif_to_expr (e,s) = match (e,s) with
+        (e,s) -> (expr e, check_stmt s) in
+      SIf(expr p, check_stmt b1, List.map elif_to_expr l, check_stmt b2)
+      | For(e1, e2, e3, l) ->
+	  SFor(expr e1, expr e2, expr e3, List.map check_stmt l)
+      | While(p, l) -> SWhile(expr p, List.map check_stmt l)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
         else raise (
@@ -208,14 +206,15 @@ let check (globals, functions) =
           in SBlock(check_stmt_list sl)
       | Break -> SBreak
       | Continue -> SContinue
+      | VarDecl(t, s, e) -> SVarDecl(t,s, expr e)
 
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
-      slocals  = func.locals;
+      (*slocals  = func.locals;*)
       sbody = match check_stmt (Block func.body) with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
-  in (globals, List.map check_function functions)
+  in (List.map check_function functions)

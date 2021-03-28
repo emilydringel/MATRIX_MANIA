@@ -5,7 +5,7 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or | Mod
 
-type uop = Not | Neg | Size
+type uop = Not | Neg (*| Size*)
 
 type typ = Int | Float | Void | Matrix of typ (* * int * int  *)
 
@@ -84,7 +84,7 @@ let string_of_uop (o) =
   match o with
     Not -> "!"
   | Neg -> "-"
-  | Size -> "size"
+  (*| Size -> "size"*)
 
 let rec string_of_expr = function
   IntLit(l) -> string_of_int l

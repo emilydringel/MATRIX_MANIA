@@ -48,7 +48,7 @@ rule token = parse
 | "float"    { FLOAT }
 | "matrix"   { MATRIX }
 | "void"     { VOID }
-| "size"     { SIZE }
+(*| "size"     { SIZE }*)
 (* | "main"     { MAIN } *)
 | "import"   { IMPORT }
 | "define"   { DEFINE }

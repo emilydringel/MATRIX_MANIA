@@ -8,7 +8,7 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA   
 %token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
-%token SIZE EQ NEQ LT LEQ GT GEQ AND OR
+%token /*SIZE*/ EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID MATRIX
 %token <int> INTLIT
 %token <string> ID 
@@ -147,7 +147,7 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3)   }
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
-  | SIZE expr        { Unop(Size, $2)         }
+  /*| SIZE expr        { Unop(Size, $2)         }*/
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
