@@ -132,7 +132,7 @@ let translate (functions) =
 	                              (* Build return statement *)
 	                            | _ -> L.build_ret (expr builder e) builder );
 	                     builder
-				| SIf (predicate, then_stmt, elif_list, else_stmt) ->
+				| SIf (predicate, then_stmt, else_stmt) ->
 							let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
 							let bool_val = L.const_int i1_t int_val in
 							(*let bool_val = L.const_int i1_t (if 0 then 1 else 0) in *)

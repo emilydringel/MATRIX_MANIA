@@ -21,7 +21,7 @@ type sstmt =
   | SVarDecl of typ * string * sexpr
   | SExpr of sexpr
   | SReturn of sexpr
-  | SIf of sexpr * sstmt * (sexpr * sstmt) list * sstmt
+  | SIf of sexpr * sstmt * sstmt
   | SFor of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
   | SBreak (* Maybe *)
@@ -98,13 +98,8 @@ let rec string_of_sstmt = function
   | SReturn(expr) -> "return " ^ string_of_sexpr expr ^ ";\n";
   (*| SIf(e, s, SBlock([])) ->
       "if (" ^ string_of_sexpr e ^ ")\n" ^ string_of_sstmt s *)
-  | SIf(e, s1, l, s3) -> 
-    let string_of_elif_stmt (e,s) = 
-      "else if (" ^ string_of_sexpr e ^ ")\n" ^
-      string_of_sstmt s
-    in
-    "if (" ^ string_of_sexpr e ^ ")\n" ^
-    string_of_sstmt s1 ^ String.concat "" (List.map string_of_elif_stmt l) ^ "else\n" ^ string_of_sstmt s3
+  | SIf(e, s1, s2) -> "if (" ^ string_of_sexpr e ^ ")\n" ^
+      string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2
   (*| SIf(e, s1, s2) ->  "if (" ^ string_of_sexpr e ^ ")\n" ^
       string_of_sstmt s1 ^ "else\n" ^ string_of_sstmt s2*)
       (*| SFor of sexpr * sexpr * sexpr * sstmt list*)

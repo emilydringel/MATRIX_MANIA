@@ -228,10 +228,7 @@ module StringMap = Map.Make(String)
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
-      | If(p, b1, l, b2) -> 
-        let rec elif_to_expr (e,s) = match (e,s) with
-          (e,s) -> (expr e, check_stmt s) in
-            SIf(expr p, check_stmt b1, List.map elif_to_expr l, check_stmt b2)
+      | If(p, b1, b2) ->  SIf(expr p, check_stmt b1, check_stmt b2)
       (*| For(e1, e2, e3, l) ->
 	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)*)
       (*| While(p, l) -> SWhile(expr p, List.map check_stmt l) *)
