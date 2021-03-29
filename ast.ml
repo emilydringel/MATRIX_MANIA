@@ -32,8 +32,8 @@ type stmt =
   | Expr of expr
   | Return of expr
   | If of expr * stmt * (expr * stmt) list * stmt
-  | For of expr * expr * expr * (stmt list)
-  | While of expr * stmt list
+  | For of expr * expr * expr * stmt
+  | While of expr * stmt
   | Break (* Maybe *)
   | Continue 
 
@@ -123,9 +123,9 @@ let rec string_of_stmt = function
   "if (" ^ string_of_expr e ^ ")\n" ^
   string_of_stmt s1 ^ String.concat "" (List.map string_of_elif_stmt l) ^ "else\n" ^ string_of_stmt s3
   | For(e1, e2, e3, s) ->
-      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-      string_of_expr e3  ^ ") " ^ String.concat "\n" (List.map string_of_stmt s)
-  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ String.concat "\n" (List.map string_of_stmt s)
+    "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
+    string_of_expr e3  ^ ") " ^ string_of_stmt s
+  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | Break -> "break \n"
   | Continue -> "continue \n"
   | VarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_expr e ^ "\n"

@@ -230,15 +230,14 @@ module StringMap = Map.Make(String)
         Expr e -> SExpr (expr e)
       | If(p, b1, l, b2) -> 
         let rec elif_to_expr (e,s) = match (e,s) with
-        (e,s) -> (expr e, check_stmt s) in
-         SIf(expr p, check_stmt b1, List.map elif_to_expr l, check_stmt b2)
-      | For(e1, e2, e3, l) ->
-	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)
-      | While(p, l) -> SWhile(expr p, List.map check_stmt l)
-      (*| If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)
-      | For(e1, e2, e3, st) ->
-	  SFor(expr e1, expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(expr p, check_stmt s)*)
+          (e,s) -> (expr e, check_stmt s) in
+            SIf(expr p, check_stmt b1, List.map elif_to_expr l, check_stmt b2)
+      (*| For(e1, e2, e3, l) ->
+	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)*)
+      (*| While(p, l) -> SWhile(expr p, List.map check_stmt l) *)
+      (*| If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)*)
+      | For(e1, e2, e3, st) -> SFor(expr e1, expr e2, expr e3, check_stmt st)
+      | While(p, s) -> SWhile(expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
         else raise (

@@ -149,27 +149,25 @@ let translate (functions) =
 					
 							ignore(L.build_cond_br bool_val then_bb else_bb builder);
 						L.builder_at_end context merge_bb
-					| SWhile (predicate, body) ->
-						let pred_bb = L.append_block context "while" the_function in
-						ignore(L.build_br pred_bb builder);
-				
-						let body_bb = L.append_block context "while_body" the_function in
-							(match body with
-							[a] -> 
-								add_terminal (stmt (L.builder_at_end context body_bb) a)
-									(L.build_br pred_bb);
-							| _ -> ignore(List.fold_left stmt builder body););				
-				
-						let pred_builder = L.builder_at_end context pred_bb in
-						let bool_val = expr pred_builder predicate in
-				
-						let merge_bb = L.append_block context "merge" the_function in
-						ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
-						L.builder_at_end context merge_bb
-				
-							(* Implement for loops as while loops *)
-					| SFor (e1, e2, e3, body) -> stmt builder
-							( SBlock [SExpr e1 ; SWhile (e2, body @ [SExpr e3]) ] )
+						| SWhile (predicate, body) ->
+							let pred_bb = L.append_block context "while" the_function in
+							ignore(L.build_br pred_bb builder);
+					
+							let body_bb = L.append_block context "while_body" the_function in
+							add_terminal (stmt (L.builder_at_end context body_bb) body)
+								(L.build_br pred_bb);
+					
+							let pred_builder = L.builder_at_end context pred_bb in
+							let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
+							let bool_val = L.const_int i1_t int_val in
+					
+							let merge_bb = L.append_block context "merge" the_function in
+							ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+							L.builder_at_end context merge_bb
+					
+								(* Implement for loops as while loops *)
+								| SFor (e1, e2, e3, body) -> stmt builder
+								( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
 					| SVarDecl (typ, id, e) -> 
 						L.build_alloca (ltype_of_typ typ) id builder;
 						let e' = expr builder e in
