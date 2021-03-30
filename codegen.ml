@@ -80,12 +80,12 @@ let translate (functions) =
 				in StringMap.add n local_var m 
 			in
 
-			List.fold_left2 add_formal StringMap.empty fdecl.sformals
-				(Array.to_list (L.params the_function))
+			ref (List.fold_left2 add_formal StringMap.empty fdecl.sformals
+				(Array.to_list (L.params the_function)))
 		in 
 	    (* Return the value for a variable or formal argument.
 	       Check local names  *)
-		let lookup n = StringMap.find n local_vars
+		let lookup n = StringMap.find n !local_vars
 		in
 
 	    (* Construct code for an expression; return its value *)
@@ -93,7 +93,8 @@ let translate (functions) =
 			SLiteral i  -> L.const_int i32_t i
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
-	     (* | SId s -> L.build_load(lookup s) s builder *)
+ 				| SId s       -> 
+					L.build_load (lookup s) s builder
 	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
@@ -168,10 +169,14 @@ let translate (functions) =
 								(* Implement for loops as while loops *)
 								| SFor (e1, e2, e3, body) -> stmt builder
 								( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-					| SVarDecl (typ, id, e) -> 
-						L.build_alloca (ltype_of_typ typ) id builder;
-						let e' = expr builder e in
-							ignore(L.build_store e' (lookup id) builder); builder
+					| SVarDecl (t, id, e) -> 
+						let local_var = L.build_alloca (ltype_of_typ t) id builder in 
+							(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
+							local_vars := StringMap.add id local_var !local_vars;
+							(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
+							(*	L.build_alloca (ltype_of_typ typ) id builder; *)
+							let e' = expr builder e in
+									ignore(L.build_store e' (StringMap.find id !local_vars) builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)
