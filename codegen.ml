@@ -86,7 +86,7 @@ let translate (functions) =
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
  				| SId s       -> 
-					L.build_load (Hashtbl.find var_hash s) s builder
+					L.build_load (lookup s) s builder
 	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
