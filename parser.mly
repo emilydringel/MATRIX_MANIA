@@ -22,6 +22,7 @@
 %type <Ast.program> program
 
 %nonassoc NOELSE
+%nonassoc NOELIF
 %nonassoc ELSE 
 %nonassoc BREAK CONTINUE RETURN
 %right ASSIGN
@@ -99,12 +100,16 @@ stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
-/*elif_list:
-            { [] }
-   | elif_list elif { $2 :: $1 }
-
-elif:
-  ELIF LPAREN expr RPAREN stmt { ($3, $5) } */
+block_stmt:
+  LBRACE stmt_list RBRACE                   { Block(List.rev $2)    }
+  
+elifs:
+    ELIF LPAREN expr RPAREN block_stmt %prec NOELSE    
+                                            { If($3, $5, Block([])) }
+  | ELIF LPAREN expr RPAREN block_stmt ELSE block_stmt 
+                                            { If($3, $5, $7)        }
+  | ELIF LPAREN expr RPAREN block_stmt elifs           
+                                            { If($3, $5, $6)        }
 
 stmt:
     typ ID ASSIGN expr SEMI                 { VarDecl($1, $2, $4) }
@@ -112,10 +117,12 @@ stmt:
   | BREAK SEMI                              { Break                 }
   | CONTINUE SEMI                           { Continue              }
   | RETURN expr_opt SEMI                    { Return $2             }
-  | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
-  /*| LBRACE elif_list RBRACE	                { Block(List.rev $2)    } */
-  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) } 
-  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        } 
+  | block_stmt                              { $1                    }
+  | IF LPAREN expr RPAREN block_stmt %prec NOELSE 
+                                            { If($3, $5, Block([])) } 
+  | IF LPAREN expr RPAREN block_stmt ELSE block_stmt    
+                                            { If($3, $5, $7)        } 
+  | IF LPAREN expr RPAREN block_stmt elifs  { If($3, $5, $6)        } 
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
