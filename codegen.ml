@@ -66,26 +66,18 @@ let translate (functions) =
 	    (* Construct the function's "locals": formal arguments and locally
 	       declared variables.  Allocate each on the stack, initialize their
 	       value, if appropriate, and remember their values in the "locals" map *)
-		let local_vars =
-			let add_formal m (t, n) p = 
+		let var_hash = Hashtbl.create 20 in
+			let add_formal (t, n) p = 
 				L.set_value_name n p;
 				let local = L.build_alloca (ltype_of_typ t) n builder in
-				ignore (L.build_store p local builder);
-				StringMap.add n local m 
+					ignore (L.build_store p local builder);
+					ignore (Hashtbl.add var_hash n local)
 
-		    (* Allocate space for any locally declared variables and add the
-		       * resulting registers to our map *)
-			and add_local m (t, n) =
-				let local_var = L.build_alloca (ltype_of_typ t) n builder
-				in StringMap.add n local_var m 
 			in
-
-			List.fold_left2 add_formal StringMap.empty fdecl.sformals
-				(Array.to_list (L.params the_function))
-		in 
+			List.iter2 add_formal fdecl.sformals (Array.to_list (L.params the_function));
 	    (* Return the value for a variable or formal argument.
 	       Check local names  *)
-		let lookup n = StringMap.find n local_vars
+		let lookup n = Hashtbl.find var_hash n
 		in
 
 	    (* Construct code for an expression; return its value *)
@@ -93,7 +85,8 @@ let translate (functions) =
 			SLiteral i  -> L.const_int i32_t i
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
-	     (* | SId s -> L.build_load(lookup s) s builder *)
+ 				| SId s       -> 
+					L.build_load (lookup s) s builder
 	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
@@ -168,10 +161,14 @@ let translate (functions) =
 								(* Implement for loops as while loops *)
 								| SFor (e1, e2, e3, body) -> stmt builder
 								( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-					| SVarDecl (typ, id, e) -> 
-						L.build_alloca (ltype_of_typ typ) id builder;
-						let e' = expr builder e in
-							ignore(L.build_store e' (lookup id) builder); builder
+					| SVarDecl (t, id, e) -> 
+						let local_var = L.build_alloca (ltype_of_typ t) id builder in 
+							(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
+							Hashtbl.add var_hash id local_var;
+							(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
+							(*	L.build_alloca (ltype_of_typ typ) id builder; *)
+							let e' = expr builder e in
+									ignore(L.build_store e' (lookup id) builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)

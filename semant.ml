@@ -110,7 +110,8 @@ module StringMap = Map.Make(String)
     
     let type_of_identifier s =
       try StringMap.find s symbols
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+      with Not_found -> Int (* raise (Failure ("undeclared identifier " ^ s))*)
+      (* replace StringMap with StringHash to fix Not_found error*)
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
