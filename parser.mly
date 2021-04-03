@@ -99,12 +99,12 @@ stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
-elif_list:
-     /* nothing */       { [] }
+/*elif_list:
+            { [] }
    | elif_list elif { $2 :: $1 }
 
 elif:
-  ELIF LPAREN expr RPAREN stmt { ($3, $5) }
+  ELIF LPAREN expr RPAREN stmt { ($3, $5) } */
 
 stmt:
     typ ID ASSIGN expr SEMI                 { VarDecl($1, $2, $4) }
@@ -114,8 +114,8 @@ stmt:
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   /*| LBRACE elif_list RBRACE	                { Block(List.rev $2)    } */
-  | IF LPAREN expr RPAREN stmt elif_list %prec NOELSE { If($3, $5, $6, Block([])) } 
-  | IF LPAREN expr RPAREN stmt elif_list ELSE stmt    { If($3, $5, $6, $8)        } 
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) } 
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        } 
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
