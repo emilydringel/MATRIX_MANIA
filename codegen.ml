@@ -87,6 +87,46 @@ let translate (functions) =
 	      | SNoexpr -> L.const_int i32_t 0
  				| SId s       -> 
 					L.build_load (lookup s) s builder
+				| SBinop ((A.Float,_ ) as e1, op, e2) ->
+					let e1' = expr builder e1
+					and e2' = expr builder e2 in
+					(match op with 
+						A.Add     -> L.build_fadd
+					| A.Sub     -> L.build_fsub
+					| A.Mult    -> L.build_fmul
+					| A.Div     -> L.build_fdiv 
+					| A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+					| A.Neq     -> L.build_fcmp L.Fcmp.One
+					| A.Less    -> L.build_fcmp L.Fcmp.Olt
+					| A.Leq     -> L.build_fcmp L.Fcmp.Ole
+					| A.Greater -> L.build_fcmp L.Fcmp.Ogt
+					| A.Geq     -> L.build_fcmp L.Fcmp.Oge
+					| A.And | A.Or ->
+							raise (Failure "internal error: semant should have rejected and/or on float")
+					) e1' e2' "tmp" builder
+						| SBinop (e1, op, e2) ->
+					let e1' = expr builder e1
+					and e2' = expr builder e2 in
+					(match op with
+						A.Add     -> L.build_add
+					| A.Sub     -> L.build_sub
+					| A.Mult    -> L.build_mul
+								| A.Div     -> L.build_sdiv
+					| A.And     -> L.build_and
+					| A.Or      -> L.build_or
+					| A.Equal   -> L.build_icmp L.Icmp.Eq
+					| A.Neq     -> L.build_icmp L.Icmp.Ne
+					| A.Less    -> L.build_icmp L.Icmp.Slt
+					| A.Leq     -> L.build_icmp L.Icmp.Sle
+					| A.Greater -> L.build_icmp L.Icmp.Sgt
+					| A.Geq     -> L.build_icmp L.Icmp.Sge
+					) e1' e2' "tmp" builder
+						| SUnop(op, ((t, _) as e)) ->
+								let e' = expr builder e in
+					(match op with
+						A.Neg when t = A.Float -> L.build_fneg 
+					| A.Neg                  -> L.build_neg
+								| A.Not                  -> L.build_not) e' "tmp" builder
 	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
@@ -126,8 +166,10 @@ let translate (functions) =
 	                            | _ -> L.build_ret (expr builder e) builder );
 	                     builder
 				| SIf (predicate, then_stmt, else_stmt) ->
-							let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
-							let bool_val = L.const_int i1_t int_val in
+							(* let expr_val = expr builder predicate in
+							let int_val = if L.is_null expr_val then 0 else 1 in
+							let bool_val = L.const_int i1_t int_val in *)
+							let bool_val = expr builder predicate in
 							(*let bool_val = L.const_int i1_t (if 0 then 1 else 0) in *)
 							let merge_bb = L.append_block context "merge" the_function in
 										let build_br_merge = L.build_br merge_bb in (* partial function *)
@@ -151,8 +193,9 @@ let translate (functions) =
 								(L.build_br pred_bb);
 					
 							let pred_builder = L.builder_at_end context pred_bb in
-							let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
-							let bool_val = L.const_int i1_t int_val in
+							(* let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
+							let bool_val = L.const_int i1_t int_val in *)
+							let bool_val = expr builder predicate in
 					
 							let merge_bb = L.append_block context "merge" the_function in
 							ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
