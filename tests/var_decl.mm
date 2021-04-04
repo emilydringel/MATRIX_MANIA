@@ -1,4 +1,5 @@
 def int main( ){
     int x = 0;
-    print(x);
+    int y = x;
+    print(y);
 }

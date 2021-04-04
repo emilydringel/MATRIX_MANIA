@@ -107,7 +107,7 @@ module StringMap = Map.Make(String)
     List.iter (fun (ty, name) -> Hashtbl.add symbols name ty)
         (func.formals);
 
-(*
+  (* OLD VERSION OF SYMBOLS:
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (func.formals)
                   StringMap.empty (globals @ func.formals @ func.locals )
@@ -118,7 +118,13 @@ module StringMap = Map.Make(String)
     
     let type_of_identifier s =
       try Hashtbl.find symbols s
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+      (* Below Not_found is no longer finding the existing variables *)
+      with Not_found -> (* Int -- Can replace below Failure with Int to avoid the issue *)
+      let key_list = Hashtbl.fold (fun k v acc -> k :: acc) symbols []
+        in
+        raise (Failure ("undeclared identifier " ^ s ^ "; contents of hash: " 
+        ^ String.concat ", " (List.map (fun k -> "name: " ^ k) key_list)
+      ))
       (* replace StringMap with StringHash to fix Not_found error*)
     in
 
@@ -266,7 +272,13 @@ module StringMap = Map.Make(String)
           let (ty,ex) = expr e in
           if ty != t then raise (Failure ("Type not correct"));
           Hashtbl.add symbols s t;
-          SVarDecl(t, s, expr e) (* COME BACK TO THIS*)
+          SVarDecl(t, s, expr e)(* COME BACK TO THIS*)
+          (* FOR TESTING: Take out line above, add:
+          let key_list = Hashtbl.fold (fun k v acc -> k :: acc) symbols []
+          in
+            raise (Failure ("tried to add, contents of hash: " 
+            ^ String.concat ", " (List.map (fun k -> "name: " ^ k) key_list)
+            ))*)
 
     in (* body of check_function *)
     { styp = func.typ;
