@@ -1,3 +1,5 @@
+def int main ( ){
+
 int gcd(int x, int y){ 
  if (x == 0){
    return y;
@@ -10,8 +12,6 @@ int gcd(int x, int y){
 }
 return x;
 }
-
-def main ( ){
  print(gcd(3, 15));
  print(gcd(18,24));
  return 0;
