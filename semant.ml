@@ -12,6 +12,7 @@ open Sast
 
 module StringMap = Map.Make(String)
 
+
 (* Semantic checking of the AST. Returns an SAST if successful,
    throws an exception if something is wrong.
 
@@ -101,16 +102,23 @@ module StringMap = Map.Make(String)
 
     (* Build local symbol table of variables for this function *)
     
+    let symbols = Hashtbl.create 20 in
+
+    List.iter (fun (ty, name) -> Hashtbl.add symbols name ty)
+        (func.formals);
+
+(*
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (func.formals)
-                  (*StringMap.empty (globals @ func.formals @ func.locals )*)
+                  StringMap.empty (globals @ func.formals @ func.locals )
     in
+  *)
 
     (* Return a variable from our local symbol table *)
     
     let type_of_identifier s =
-      try StringMap.find s symbols
-      with Not_found -> Int (* raise (Failure ("undeclared identifier " ^ s))*)
+      try Hashtbl.find symbols s
+      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
       (* replace StringMap with StringHash to fix Not_found error*)
     in
 
@@ -257,7 +265,7 @@ module StringMap = Map.Make(String)
       | VarDecl(t, s, e) -> 
           let (ty,ex) = expr e in
           if ty != t then raise (Failure ("Type not correct"));
-          StringMap.add s t;
+          Hashtbl.add symbols s t;
           SVarDecl(t, s, expr e) (* COME BACK TO THIS*)
 
     in (* body of check_function *)
