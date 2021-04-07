@@ -13,12 +13,23 @@ let translate (functions) =
 	and i8_t = L.i8_type context
 	and i1_t = L.i1_type context
 	and float_t    = L.double_type context
+	and array_t = L.array_type
 	and void_t     = L.void_type   context in
 
 	let ltype_of_typ = function
 		  A.Int -> i32_t 
 		| A.Float -> float_t 
 		| A.Void  -> void_t
+		(*| A.Matrix(t, r, c) ->
+			let rows = match r with IntLit(s) -> s 
+															| _ -> raise(Failure"Integer required for matrix dimension") in
+			let cols = match c with IntLit(s) -> s 
+															| _ -> raise(Failure"Integer required for matrix dimension") in
+			(match t with
+					A.Int      -> array_t (array_t i32_t cols) rows
+					| A.Float  -> array_t (array_t float_t cols) rows
+					| _ -> raise(Failure"Invalid datatype for matrix"))*)
+
 	in
 
 	(* Declare and store global variables *)
@@ -82,12 +93,20 @@ let translate (functions) =
 
 	    (* Construct code for an expression; return its value *)
 	    let rec expr builder ((_, e) : sexpr) = match e with
-			SLiteral i  -> L.const_int i32_t i
+				SLiteral i  -> L.const_int i32_t i
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
+				| SMatrixLit l -> 
+					print_int(0);
+					(* (sexpr list) list *)
+					(* extract rows and column info here *)
+					let rows = List.fold_left (fun x _ -> x + 1) 0 l in 
+					let cols = List.fold_left (fun x _ -> x + 1) 0 (List.hd l) in
+					print_int(rows);
+					print_int(cols); L.const_int i32_t 0
  				| SId s       -> 
 					L.build_load (lookup s) s builder
-				| SBinop ((A.Float,_ ) as e1, op, e2) ->
+				| SBinop ((A.Float,_ ) as e1, op, e2) -> 
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in
 					(match op with 
@@ -104,7 +123,7 @@ let translate (functions) =
 					| A.And | A.Or ->
 							raise (Failure "internal error: semant should have rejected and/or on float")
 					) e1' e2' "tmp" builder
-						| SBinop (e1, op, e2) ->
+						| SBinop (e1, op, e2) -> 
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in
 					(match op with
@@ -121,19 +140,19 @@ let translate (functions) =
 					| A.Greater -> L.build_icmp L.Icmp.Sgt
 					| A.Geq     -> L.build_icmp L.Icmp.Sge
 					) e1' e2' "tmp" builder
-						| SUnop(op, ((t, _) as e)) ->
+						| SUnop(op, ((t, _) as e)) -> 
 								let e' = expr builder e in
 					(match op with
 						A.Neg when t = A.Float -> L.build_fneg 
 					| A.Neg                  -> L.build_neg
 								| A.Not                  -> L.build_not) e' "tmp" builder
-	      | SCall ("print", [e]) | SCall ("printb", [e]) ->
+	      | SCall ("print", [e]) | SCall ("printb", [e]) -> 
 			  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 			    "printf" builder
 	      | SCall ("printf", [e]) -> 
 			  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 			    "printf" builder
-	      | SCall (f, args) ->
+	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in
 		 	let result = (match fdecl.styp with 

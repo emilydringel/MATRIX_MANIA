@@ -146,13 +146,14 @@ module StringMap = Map.Make(String)
 
         let my_type = find_type l in
 
-        let rec matrix_expr l = match l with
+        let rec matrix_expr l =  match l with
             hd::tl -> let (ty,e) = expr hd in
               if ty != my_type then raise (Failure ("Types in matrix do not match."));
-              (ty, e) :: (matrix_expr l)
+              (ty, e) :: (matrix_expr tl)
           | _ -> []
         in
-
+        (*ignore(List.map matrix_expr l);
+        (Int, SLiteral 1)*)
         (Matrix(my_type), SMatrixLit(List.map matrix_expr l)) (*Need to fix*)
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
