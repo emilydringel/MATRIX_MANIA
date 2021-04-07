@@ -152,8 +152,6 @@ module StringMap = Map.Make(String)
               (ty, e) :: (matrix_expr tl)
           | _ -> []
         in
-        (*ignore(List.map matrix_expr l);
-        (Int, SLiteral 1)*)
         (Matrix(my_type), SMatrixLit(List.map matrix_expr l)) (*Need to fix*)
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)

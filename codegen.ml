@@ -97,11 +97,13 @@ let translate (functions) =
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
 				| SMatrixLit l -> 
-					print_int(0);
 					(* (sexpr list) list *)
 					(* extract rows and column info here *)
-					let rows = List.fold_left (fun x _ -> x + 1) 0 l in 
-					let cols = List.fold_left (fun x _ -> x + 1) 0 (List.hd l) in
+					let count a = List.fold_left (fun x _ -> x + 1) 0 a in
+					let rows = count l in 
+					let cols = count (List.hd l) in
+					let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
+					print_int(if all_good == true then 1 else 0);
 					print_int(rows);
 					print_int(cols); L.const_int i32_t 0
  				| SId s       -> 
