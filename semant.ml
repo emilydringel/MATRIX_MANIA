@@ -1,11 +1,4 @@
-(* Semantic checking for the MicroC compiler *)
-
-(* BIGGEST PROBLEMS: 
-1. How to keep track of the matrix size? Maybe sx should be different for matrices? -- don't do this
-2. How do you say matrix of any type/size -- ex. in printing
-3. Getting matrix size from a matrix literal -- using lists, should be not too hard
-4. Finish expr and check_stmt from chalkboard notes
-*)
+(* Semantic checking for the MATRIX MANIA compiler *)
 
 open Ast
 open Sast
@@ -18,7 +11,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-   let check (imports, defines, functions) =
+  let check (imports, defines, functions) =
 
   (* Check binds - Verify a list of bindings has no void types or duplicate names *)
 
@@ -101,41 +94,35 @@ module StringMap = Map.Make(String)
     *)
 
     (* Build local symbol table of variables for this function *)
-    
+     
+    (* HashTbl version of Symbols:
     let symbols = Hashtbl.create 20 in
 
     List.iter (fun (ty, name) -> Hashtbl.add symbols name ty)
         (func.formals);
-
-  (* OLD VERSION OF SYMBOLS:
+      *)
+    
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (func.formals)
-                  StringMap.empty (globals @ func.formals @ func.locals )
+                  (*StringMap.empty (globals @ func.formals @ func.locals )*)
     in
-  *)
 
     (* Return a variable from our local symbol table *)
     
-    let type_of_identifier s =
-      try Hashtbl.find symbols s
-      (* Below Not_found is no longer finding the existing variables *)
-      with Not_found -> (* Int -- Can replace below Failure with Int to avoid the issue *)
-      let key_list = Hashtbl.fold (fun k v acc -> k :: acc) symbols []
-        in
-        raise (Failure ("undeclared identifier " ^ s ^ "; contents of hash: " 
-        ^ String.concat ", " (List.map (fun k -> "name: " ^ k) key_list)
-      ))
+    let type_of_identifier s env =
+      try StringMap.find s env
+      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
       (* replace StringMap with StringHash to fix Not_found error*)
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
-    let rec expr = function
+    let rec expr e env = match e with
         IntLit  l -> (Int, SLiteral l)
       | FLit l -> (Float, SFliteral l)
       (*| StrLiteral l -> (Int, SStrLiteral l)*)
       | MatrixLit l -> 
         let find_inner_type l = match l with
-            hd::tl -> let (t,e) = (expr hd) in t
+            hd::tl -> let (t,e) = (expr hd env) in t
           | _ -> Void
         in
         
@@ -147,7 +134,7 @@ module StringMap = Map.Make(String)
         let my_type = find_type l in
 
         let rec matrix_expr l =  match l with
-            hd::tl -> let (ty,e) = expr hd in
+            hd::tl -> let (ty,e) = expr hd env in
               if ty != my_type then raise (Failure ("Types in matrix do not match."));
               (ty, e) :: (matrix_expr tl)
           | _ -> []
@@ -155,15 +142,15 @@ module StringMap = Map.Make(String)
         (Matrix(my_type), SMatrixLit(List.map matrix_expr l)) (*Need to fix*)
       (*| BoolLit l  -> (Bool, SBoolLit l)*)
       | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s, SId s) (*should be type of identifier*)
+      | Id s       -> (type_of_identifier s env, SId s) (*should be type of identifier*)
       | Assign(var, e) -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
+          let lt = type_of_identifier var env
+          and (rt, e') = expr e env in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_sexpr (rt, e')
           in (check_assign lt rt err, SAssign(var, (rt, e')))
       | Unop(op, e) ->
-          let (t, e') = expr e in
+          let (t, e') = expr e env in
           let ty = match op with
             Neg when t = Int || t = Float -> t
           | Not when t = Int -> Int (* should check whether 0 or 1 in code *)
@@ -173,8 +160,8 @@ module StringMap = Map.Make(String)
                                  " in " ^ string_of_expr e))
           in (ty, SUnop(op, (t, e')))
       | Binop(e1, op, e2) -> 
-          let (t1, e1') = expr e1 
-          and (t2, e2') = expr e2 in
+          let (t1, e1') = expr e1 env 
+          and (t2, e2') = expr e2 env in
           (* All binary operators require operands of the same type *)
           let same = t1 = t2 in
           let castOk = ((t1 = Float && t2 = Int) || (t1 = Int && t2 = Float)) in
@@ -212,7 +199,7 @@ module StringMap = Map.Make(String)
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
           else let check_call (ft, _) e = 
-            let (et, e') = expr e in 
+            let (et, e') = expr e env in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
@@ -220,7 +207,7 @@ module StringMap = Map.Make(String)
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
       | Access(e1, l1, l2) -> 
-          let (t,e) = expr e1 in
+          let (t,e) = expr e1 env in
           let ty = match t with
             Matrix(Int) -> Int
           | Matrix(Float) -> Float
@@ -228,7 +215,7 @@ module StringMap = Map.Make(String)
             Failure ("illegal access of " ^
                            string_of_typ t))
           in
-        (ty, SAccess(expr e1, l1, l2))
+        (ty, SAccess(expr e1 env, l1, l2))
     in
     
     (*
@@ -240,51 +227,56 @@ module StringMap = Map.Make(String)
     *)
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
-    let rec check_stmt = function
-        Expr e -> SExpr (expr e)
-      | If(p, b1, b2) ->  SIf(expr p, check_stmt b1, check_stmt b2)
+    let rec check_stmt stmt env = match stmt with
+        Expr e -> (SExpr (expr e env), env)
+      | If(p, b1, b2) -> 
+      let (st1, e1) =  check_stmt b1 env in
+      let (st2, e2) =  check_stmt b2 env in
+      (SIf(expr p env, st1, st2), env)
       (*| For(e1, e2, e3, l) ->
 	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)*)
       (*| While(p, l) -> SWhile(expr p, List.map check_stmt l) *)
       (*| If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)*)
-      | For(e1, e2, e3, st) -> SFor(expr e1, expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(expr p, check_stmt s)
-      | Return e -> let (t, e') = expr e in
-        if t = func.typ then SReturn (t, e') 
+      | For(e1, e2, e3, st) -> 
+      let (s, en) =  check_stmt st env in
+      (SFor(expr e1 env, expr e2 env, expr e3 env, s), env)
+      | While(p, s) -> 
+      let (st, en) =  check_stmt s env in
+      (SWhile(expr p env, st), env)
+      | Return e -> let (t, e') = expr e env in
+        if t = func.typ then (SReturn (t, e'), env) 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_sexpr (expr e)))
+		   string_of_typ func.typ ^ " in " ^ string_of_sexpr (expr e env)))
 	    
 	    (* A block is correct if each statement is correct and nothing
 	       follows any Return statement.  Nested blocks are flattened. *)
       | Block sl -> 
-          let rec check_stmt_list = function
-              [Return _ as s] -> [check_stmt s]
+          let rec check_stmt_list bl en = match bl with
+              [Return _ as s] -> 
+              let (st, en) = check_stmt s env in 
+              [st]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-            | s :: ss         -> check_stmt s :: check_stmt_list ss
+            | Block sl :: ss  -> check_stmt_list (sl @ ss) en (* Flatten blocks *)
+            | s :: ss         -> 
+            let (st, en2) = check_stmt s en in
+            st :: check_stmt_list ss en2
             | []              -> []
-          in SBlock(check_stmt_list sl)
-      | Break -> SBreak
-      | Continue -> SContinue
+          in let ssl = check_stmt_list sl env in
+          (SBlock(ssl), env) (*Something isn't working here*)
+      | Break -> (SBreak, env)
+      | Continue -> (SContinue, env)
       | VarDecl(t, s, e) -> 
-          let (ty,ex) = expr e in
-          if ty != t then raise (Failure ("Type not correct"));
-          Hashtbl.add symbols s t;
-          SVarDecl(t, s, expr e)(* COME BACK TO THIS*)
-          (* FOR TESTING: Take out line above, add:
-          let key_list = Hashtbl.fold (fun k v acc -> k :: acc) symbols []
-          in
-            raise (Failure ("tried to add, contents of hash: " 
-            ^ String.concat ", " (List.map (fun k -> "name: " ^ k) key_list)
-            ))*)
+          let (ty, ex) = expr e env in
+          let decl_type = check_assign t ty "Type not correct" in
+          (SVarDecl(t, s, expr e env), StringMap.add s decl_type env)
 
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
       (*slocals  = func.locals;*)
-      sbody = match check_stmt (Block func.body) with
+      sbody = let (bl, env) = check_stmt (Block func.body) symbols in match bl with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
