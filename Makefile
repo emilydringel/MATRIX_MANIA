@@ -7,7 +7,7 @@ parser.native: parser.mly ast.ml scanner.mll
 scanner.native: scanner.mll
 	ocamlbuild -r scanner.native
 
-test: printm.o matrixmania.native 
+test: matrixmania.native 
 	@./matrixmania.native $(filename) > test.li
 	@echo -n "output: "
 	@lli test.li
