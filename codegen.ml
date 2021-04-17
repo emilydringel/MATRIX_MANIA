@@ -103,9 +103,18 @@ let translate (functions) =
 					let rows = count l in 
 					let cols = count (List.hd l) in
 					let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
+					let eval_row row 
+					  = List.fold_left (fun eval_row x -> (expr builder x) :: eval_row) [] row in 
+					let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
+					let unfolded = [L.const_int i32_t rows; L.const_int i32_t cols] @ unfolded in
+					(*
+					print_int(count unfolded);
 					print_int(if all_good == true then 1 else 0);
 					print_int(rows);
-					print_int(cols); L.const_int i32_t 0
+					print_int(cols); 
+					L.const_int i32_t 0
+					*)
+					L.const_array i32_t (Array.of_list unfolded)
  				| SId s       -> 
 					L.build_load (lookup s) s builder
 				| SBinop ((A.Float,_ ) as e1, op, e2) -> 
