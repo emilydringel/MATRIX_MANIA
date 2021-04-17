@@ -1,7 +1,8 @@
 def int main( ){
- if(0) {
-     print(0);
- } elif (1) {
-     print(1);
- }
+    int x = 1;
+    if(0 == x) {
+        print(0);
+    } elif (1 == x) {
+        print(1);
+    }
 }

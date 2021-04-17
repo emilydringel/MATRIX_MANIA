@@ -254,7 +254,7 @@ module StringMap = Map.Make(String)
       | Block sl -> 
           let rec check_stmt_list bl en = match bl with
               [Return _ as s] -> 
-              let (st, en) = check_stmt s env in 
+              let (st, en1) = check_stmt s en in 
               [st]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
             | Block sl :: ss  -> check_stmt_list (sl @ ss) en (* Flatten blocks *)

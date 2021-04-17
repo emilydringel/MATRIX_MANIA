@@ -1,7 +1,6 @@
 def int main( ){
  int x = 0;
- int y = 1;
- while(x == y) {
+ while(x == 0) {
      print(1);
  }
  print(0);
