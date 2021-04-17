@@ -16,7 +16,7 @@ def matrix<int> transpose(matrix<int> m, matrix<int> n){
  print(m);
  print(transposed);
 
- print(transpose([7,8,9; 10,11,12]);
- print(transpose([7,8,9; 10,11, 12],[0,0;0,0;0,0]);
+ print(transpose([7,8,9,10; 11,12,13,14]);
+ print(transpose([7,8,9,10; 11,12,13,14],[0,0;0,0;0,0;0,0]);
  return 0;
 } 
