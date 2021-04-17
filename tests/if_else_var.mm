@@ -1,9 +1,9 @@
 def int main( ){
     int x = 1;
-    int y = 0;
+    int y = 4;
     if(x == y) {
-        print(1);
+        print(x);
     } else {
-        print(2);
+        print(y);
     }
 }
