@@ -1,11 +1,11 @@
 def int main( ){
 
-Matrix<Int> m = [1,2,3; 4,5,6];
-Matrix<Int> n = [0,0,0; 0,0,0];
-Matrix<Int> tranposed = transpose(m);
+matrix<int> m = [1,2,3; 4,5,6];
+matrix<int> n = [0,0;0,0;0,0];
+matrix<int> tranposed = transpose(m,m);
 
-def Matrix<Int> transpose(Matrix<Int> m, Matrix<Int> n){
- Matrix<Int> rowscols = size(m);
+def matrix<int> transpose(matrix<int> m, matrix<int> n){
+ matrix<int> rowscols = size(m);
 
  for(int i = 0; i < rowscols[0,0]; i++){
   for(int j = 0; j < rowscols[1,0]; j++)
@@ -17,6 +17,6 @@ def Matrix<Int> transpose(Matrix<Int> m, Matrix<Int> n){
  print(transposed);
 
  print(transpose([7,8,9; 10,11,12]);
- print(transpose([7,8,9; 10,11, 12],[0,0,0; 0,0,0]);
+ print(transpose([7,8,9; 10,11, 12],[0,0;0,0;0,0]);
  return 0;
 } 
