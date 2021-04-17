@@ -50,6 +50,15 @@ let translate (functions) =
 	let printf_func : L.llvalue =
 		L.declare_function "printf" printf_t the_module in
 
+	let printm_t : L.lltype =
+      L.function_type i32_t [| array_t i32_t 8 |] in
+  let printm_func : L.llvalue =
+      L.declare_function "printm" printm_t the_module in
+
+	let printmf_t : L.lltype =
+			L.function_type i32_t [| array_t float_t 8 |] in
+	let printmf_func : L.llvalue =
+			L.declare_function "printmf" printmf_t the_module in
 
 	(* Define each function (arguments and return type) 
 	so we can call it even before we've created its body *)
@@ -164,6 +173,10 @@ let translate (functions) =
 	      | SCall ("printf", [e]) -> 
 			  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 			    "printf" builder
+				| SCall ("printm", [e]) ->
+					L.build_call printm_func [| (expr builder e) |] "printm" builder
+				| SCall ("printmf", [e]) ->
+					L.build_call printmf_func [| (expr builder e)|] "printmf" builder
 	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in

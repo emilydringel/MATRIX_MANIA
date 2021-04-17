@@ -7,18 +7,14 @@ parser.native: parser.mly ast.ml scanner.mll
 scanner.native: scanner.mll
 	ocamlbuild -r scanner.native
 
-test: matrixmania.native
+test: printm.o matrixmania.native 
 	@./matrixmania.native $(filename) > test.li
 	@echo -n "output: "
 	@lli test.li
 	@rm test.li
 
-.PHONY: test
-test: all testall.sh
-	./testall.sh
-
 .PHONY : all
-all: clean matrixmania.native
+all: clean matrixmania.native printm.o
 
 .PHONY : clean
 clean:
@@ -27,3 +23,4 @@ clean:
 	rm -f *.native
 	rm -f parser.ml parser.mli parser.output
 	rm -rf _build
+	rm -f *.o

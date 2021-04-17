@@ -13,11 +13,12 @@ LLI="lli"
 LLC="llc"
 
 # Path to the C compiler
-# CC="cc"
+CC="cc"
 
-# Path to our MATRIX_MANIA compiler. 
+# Path to the microc compiler.  Usually "./microc.native"
 # Try "_build/microc.native" if ocamlbuild was unable to create a symbolic link.
-MANIA="./matrixmania.native"
+MICROC="./microc.native"
+#MICROC="_build/microc.native"
 
 # Set time limit for all operations
 ulimit -t 30
@@ -91,9 +92,9 @@ Check() {
     generatedfiles=""
 
     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
-    Run "$MANIA" "$1" ">" "${basename}.ll" &&
+    Run "$MICROC" "$1" ">" "${basename}.ll" &&
     Run "$LLC" "-relocation-model=pic" "${basename}.ll" ">" "${basename}.s" &&
-   # Run "$CC" "-o" "${basename}.exe" "${basename}.s" "matrix.o" &&
+    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "matrix.o" &&
     Run "./${basename}.exe" > "${basename}.out" &&
     Compare ${basename}.out ${reffile}.out ${basename}.diff
 
@@ -126,7 +127,7 @@ CheckFail() {
     generatedfiles=""
 
     generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
-    RunFail "$MANIA" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
+    RunFail "$MICROC" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
     Compare ${basename}.err ${reffile}.err ${basename}.diff
 
     # Report the status and clean up the generated files
