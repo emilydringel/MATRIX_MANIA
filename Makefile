@@ -13,6 +13,10 @@ test: matrixmania.native
 	@lli test.li
 	@rm test.li
 
+.PHONY: test
+test: all testall.sh
+	./testall.sh
+
 .PHONY : all
 all: clean matrixmania.native
 
