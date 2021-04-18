@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void printm(int element_one[])
+void printm(int* element_one)
 {
     int rows = element_one[0];
     int cols = element_one[1];

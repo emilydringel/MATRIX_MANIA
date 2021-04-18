@@ -4,14 +4,14 @@
 
 #include <stdio.h>
 #include <string.h>
-
+/* UPDATE TO GET ROWS AND GET COLS */
 int* sizeInt(int element_one[])
 {
     int rows = element_one[0];
     int cols = element_one[1];
     int* ret = malloc(2*sizeof(int));
     ret[0] = rows;
-    ret[1] = cols;
+    ret[1] = cols; 
     return ret;
 }
 

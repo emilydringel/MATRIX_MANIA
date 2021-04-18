@@ -51,7 +51,7 @@ let translate (functions) =
 		L.declare_function "printf" printf_t the_module in
 
 	let printm_t : L.lltype =
-      L.function_type i32_t [| array_t i32_t 8 |] in
+      L.function_type i32_t [| L.pointer_type i32_t |] in
   let printm_func : L.llvalue =
       L.declare_function "printm" printm_t the_module in
 
@@ -241,7 +241,7 @@ let translate (functions) =
 						let pred_builder = L.builder_at_end context pred_bb in
 						(* let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
 						let bool_val = L.const_int i1_t int_val in *)
-						let bool_val = expr builder predicate in
+						let bool_val = expr pred_builder predicate in
 						let merge_bb = L.append_block context "merge" the_function in
 						ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
 						L.builder_at_end context merge_bb
