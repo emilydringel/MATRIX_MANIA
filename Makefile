@@ -7,12 +7,18 @@ parser.native: parser.mly ast.ml scanner.mll
 scanner.native: scanner.mll
 	ocamlbuild -r scanner.native
 
-test: matrixmania.native 
+printm.o:
+	gcc -c printm.c
+
+test: matrixmania.native printm.o
 	./matrixmania.native $(filename) > test.ll
 	echo -n "output: "
 	llc -relocation-model=pic test.ll
 	gcc -o myexe test.s printm.o
 	./myexe
+	rm test.ll
+	rm myexe
+	rm test.s
 
 .PHONY : all
 all: clean matrixmania.native printm.o
@@ -20,7 +26,7 @@ all: clean matrixmania.native printm.o
 .PHONY : clean
 clean:
 	ocamlbuild -clean
-	rm -f *.li
+	rm -f *.ll
 	rm -f *.native
 	rm -f parser.ml parser.mli parser.output
 	rm -rf _build
