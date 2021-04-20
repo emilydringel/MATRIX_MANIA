@@ -2,10 +2,10 @@
 
 def float add(float x){
     float y = 5.0;
-    while(y>0){
+    while(0){
         float z = x + y; 
     }
-    return z; 
+    return z; /* Fail: doesn't reach blcok */ 
 }
 
 def int main(){
