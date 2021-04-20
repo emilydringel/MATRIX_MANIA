@@ -1,1 +1,2 @@
-Fatal error: exception Failure:("Invalid matrix")
+Fatal error: exception Failure("printmf is for matrix of floats")
+
