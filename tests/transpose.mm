@@ -1,9 +1,3 @@
-def int main( ){
-
-matrix<int> m = [1,2,3; 4,5,6];
-matrix<int> n = [0,0;0,0;0,0];
-matrix<int> tranposed = transpose(m,m);
-
 def matrix<int> transpose(matrix<int> m, matrix<int> n){
  matrix<int> rowscols = size(m);
 
@@ -13,6 +7,14 @@ def matrix<int> transpose(matrix<int> m, matrix<int> n){
 }
  return n;
 }
+
+def int main( ){
+
+matrix<int> m = [1,2,3; 4,5,6];
+matrix<int> n = [0,0;0,0;0,0];
+matrix<int> tranposed = transpose(m,m);
+
+
  print(m);
  print(transposed);
 
