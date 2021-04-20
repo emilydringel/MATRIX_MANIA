@@ -111,11 +111,35 @@ let translate (functions) =
 					let count a = List.fold_left (fun x _ -> x + 1) 0 a in
 					let rows = count l in 
 					let cols = count (List.hd l) in
+
+					(* allocate space 2 + rows * cols*)
+					let matrix = L.build_alloca i32_t "matrix" builder in
+					
+					(* go through list of lists and put in place *)
+					(*build_store v p b creates a store %v, %p instruction at 
+					the position specified by the instruction builder b. *)
+
 					let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
 					let eval_row row 
-					  = List.fold_left (fun eval_row x -> (expr builder x) :: eval_row) [] row in 
+					  = List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
 					let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
 					let unfolded = [L.const_int i32_t rows; L.const_int i32_t cols] @ unfolded in
+					
+					let rec store idx lst = match lst with
+						 hd::tl -> let ptr = L.build_in_bounds_gep matrix [|L.const_int i32_t idx|] "ptr" builder in
+											 L.build_store hd ptr builder;
+											 store (idx + 1) tl;
+						| _ -> ()
+					in
+					store 0 unfolded;
+					L.build_in_bounds_gep matrix [|L.const_int i32_t 0|] "matrix" builder 
+					
+					(*List.fold_left (fun idx element -> build_gep matrix 2 name builder)
+					
+					L.build_store unfolded matrix builder 
+					let pointer = build_gep matrix 2 name builder i*)
+					(* creates a %name = getelementptr %p, indices *)
+					
 					(*
 					print_int(count unfolded);
 					print_int(if all_good == true then 1 else 0);
@@ -123,12 +147,12 @@ let translate (functions) =
 					print_int(cols); 
 					L.const_int i32_t 0
 					*)
-					L.const_array i32_t (Array.of_list unfolded)
+					(*L.const_array i32_t (Array.of_list unfolded)*)
  				| SId s       -> 
 					L.build_load (lookup s) s builder
 				| SAssign (s, e) -> let e' = expr builder e in
 					ignore(L.build_store e' (lookup s) builder); e'
-				| SBinop ((A.Float,_ ) as e1, op, e2) -> 
+				| SBinop ((A.Float, _) as e1, op, e2) -> 
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in
 					(match op with 
@@ -249,14 +273,14 @@ let translate (functions) =
 				(* Implement for loops as while loops *)
 				| SFor (e1, e2, e3, body) -> stmt builder
 					( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-				| SVarDecl (t, id, e) -> 
-						let local_var = L.build_alloca (ltype_of_typ t) id builder in 
-						(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
-						Hashtbl.add var_hash id local_var;
-						(*print_int(if StringMap.is_empty !local_vars then 1 else 0);*)
-						(*	L.build_alloca (ltype_of_typ typ) id builder; *)
-						let e' = expr builder e in
-						ignore(L.build_store e' (lookup id) builder); builder
+				| SVarDecl (t, id, e) -> match t with
+						A.Matrix(t) -> (* do stuff*)
+								builder
+						| _ -> 
+							let local_var = L.build_alloca (ltype_of_typ t) id builder in 
+							Hashtbl.add var_hash id local_var;
+							let e' = expr builder e in
+							ignore(L.build_store e' (lookup id) builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)
