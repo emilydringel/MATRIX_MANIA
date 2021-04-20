@@ -15,10 +15,10 @@ matrix<int> n = [0,0;0,0;0,0];
 matrix<int> tranposed = transpose(m,m);
 
 
- print(m);
- print(transposed);
+ printm(m);
+ printm(transposed);
 
- print(transpose([7,8,9,10; 11,12,13,14]);
- print(transpose([7,8,9,10; 11,12,13,14],[0,0;0,0;0,0;0,0]);
+ printm(transpose([7,8,9,10; 11,12,13,14]);
+ printm(transpose([7,8,9,10; 11,12,13,14],[0,0;0,0;0,0;0,0]);
  return 0;
 } 
