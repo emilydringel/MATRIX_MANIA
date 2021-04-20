@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 def int inverse(){
-=======
 def matrix<int> multiply_s(matrix<int> x, int y){
 
 matrix<int> rowscols = size(x);
@@ -33,8 +31,7 @@ def int inverse(matrix<int> x){
 
 def int main(){
         
-        matrix<int> a = [1,2;3,4];
+        matrix<int> a = [4,3;3,2];
         matrix<int> inversed = inverse(a);
-        printm(d); 
->>>>>>> 0b9c1de60f972470fa68078ae633a80904453f20
+        printm(inversed); 
 }

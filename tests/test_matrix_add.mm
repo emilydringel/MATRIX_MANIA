@@ -22,5 +22,4 @@ matrix<int> added = add(m,n);
   printm(n);
   printm(added);
   printm(add([6,8; 9,10]));
-  return 0; 
 }
