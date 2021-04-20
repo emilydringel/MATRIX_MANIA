@@ -8,8 +8,8 @@ def int det(matrix<int> x){
 def int main( ){
 	
 	matrix<int> m = [1,2;3,4];	
-	matrix<int> d = det(m);
-	printm(d);
+	int d = det(m);
+	print(d);
 		
 }
 
