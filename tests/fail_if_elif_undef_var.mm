@@ -3,7 +3,7 @@
 def int main( ){
  if(x) {
      print(0);
- } elif (p) { 
+ } elif(p) { 
      print(1);
  }
 }

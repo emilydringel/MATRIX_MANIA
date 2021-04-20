@@ -1,5 +1,4 @@
 /*gcd program to showcase our language's ability to compute common cs problems */
-
 def int gcd(int x, int y){ 
    if (x == 0){
       return y;
@@ -10,7 +9,6 @@ def int gcd(int x, int y){
    }
    return x;
 }
-
 def int main( ){
    print(gcd(3, 15));
    print(gcd(18,24));
