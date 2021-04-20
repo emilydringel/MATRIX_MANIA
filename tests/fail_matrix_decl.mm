@@ -1,4 +1,4 @@
-def int main( ){
+def int main(){
 	matrix< > x = [1];
 }
 
