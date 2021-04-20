@@ -1,4 +1,4 @@
-(*failing test for assgning ints and floats*)
+/*failing test for assgning ints and floats*/
 
 def int main( ){
     float x = 1;
