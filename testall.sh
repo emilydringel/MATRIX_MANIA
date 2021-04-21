@@ -13,11 +13,11 @@ LLI="lli"
 LLC="llc"
 
 # Path to the C compiler
-CC="cc"
+GCC="gcc"
 
 # Path to the microc compiler.  Usually "./microc.native"
 # Try "_build/microc.native" if ocamlbuild was unable to create a symbolic link.
-MICROC="./matrixmania.native"
+MICROC="_build/matrixmania.native"
 #MICROC="_build/microc.native"
 
 # Set time limit for all operations
@@ -40,7 +40,7 @@ Usage() {
 SignalError() {
     if [ $error -eq 0 ] ; then
 	echo "FAILED"
-	error=1
+	# error=1
     fi
     echo "  $1"
 }
@@ -94,7 +94,7 @@ Check() {
     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
     Run "$MICROC" "$1" ">" "${basename}.ll" &&
     Run "$LLC" "-relocation-model=pic" "${basename}.ll" ">" "${basename}.s" &&
-    Run "$CC" "-o" "${basename}.exe" "${basename}.s" "matrix.o" &&
+    Run "$GCC" "-o" "${basename}.exe" "${basename}.s" "printm.o" &&
     Run "./${basename}.exe" > "${basename}.out" &&
     Compare ${basename}.out ${reffile}.out ${basename}.diff
 
