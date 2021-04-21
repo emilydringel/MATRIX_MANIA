@@ -1,9 +1,5 @@
 def int det(matrix<int> x){
-	matrix<int> rowscols = size(x);
-	if (rowscols == x[0,0]){
-		return rowscols[0,0];
-	}
-	return (x[0,0] * x[1,1] - x[0,1] * x[1,0]);
+    return (x[0,0] * x[1,1] - x[0,1] * x[1,0]);
 }
 def int main( ){
 	matrix<int> m = [1,2;3,4];	
