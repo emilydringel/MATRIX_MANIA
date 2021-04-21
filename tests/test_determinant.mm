@@ -10,5 +10,3 @@ def int main( ){
 	int d = det(m);
 	print(d);	
 }
-
-
