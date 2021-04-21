@@ -1,7 +1,7 @@
-/*failing test for assigning ints and floats*/
+/*failing test for assigning floats to an int var*/
 
 def int main( ){
-    float x = 1;
+    float x = 1.0;
     int x = 5.5;
     print(x);
     print(y);
