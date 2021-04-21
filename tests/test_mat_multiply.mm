@@ -1,4 +1,5 @@
 def matrix<int> multiply(matrix<int> x, matrix<int> y){
+/* matrix<int> empty as parameter? */
 
     int sizeOfR1 = getRows(x);
     int sizeOfC1 = getColumns(x);
@@ -27,5 +28,5 @@ matrix<int> multiplied = multiply(m,n);
   printm(m);
   printm(n);
   printm(multiplied);
-  printm(multiply([6,8; 9,10]));
+  printm(multiply([6,8],[9,10]));
 }
