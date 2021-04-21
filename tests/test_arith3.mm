@@ -1,4 +1,4 @@
-def int foo(int a) (*should be ignored*)
+def int foo(int a) /*should be ignored*/
 {
   return a;
 }
