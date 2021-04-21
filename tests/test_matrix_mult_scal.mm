@@ -14,11 +14,10 @@ for(int i = 0; i < rowscols[0,0]; i++)
 def int main( ){
   
 matrix<int> m = [1,4,3;2,7,6];
-int n 
+int n = 2;  
 
 matrix<int> multiplied = multiply_s(m,n);
 
   printm(multiplied);
-  printm(multiply_s([6,8,9;9,10,11]));
-  return 0; 
+  printm(multiply_s([6,8,9;9,10,11],2));
 }

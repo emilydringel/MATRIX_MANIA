@@ -21,5 +21,4 @@ matrix<int> multiplied = multiply(m,n);
   printm(n);
   printm(multiplied);
   printm(multiply([6,8; 9,10]));
-  return 0; 
 }

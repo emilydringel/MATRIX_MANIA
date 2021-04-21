@@ -1,4 +1,4 @@
-def int main( ){
+def int main(){
  if(0) {
      print(1);
      print(2);

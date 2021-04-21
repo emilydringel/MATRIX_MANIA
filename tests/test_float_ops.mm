@@ -23,5 +23,4 @@ def int main(){
 
     testfloat(d, d);
 
-    return 0;
 }

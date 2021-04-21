@@ -22,5 +22,4 @@ matrix<int> subtract = sub(m,n);
   printm(n);
   printm(subtract);
   printm(sub([6,8; 9,10]));
-  return 0; 
 }

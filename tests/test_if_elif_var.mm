@@ -1,4 +1,4 @@
-def int main( ){
+def int main(){
     int x = 1;
     if(0 == x) {
         print(0);

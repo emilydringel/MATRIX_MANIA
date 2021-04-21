@@ -15,11 +15,9 @@ def void testint(int a, int b){
     print(a <= b);
 }
 def int main(){
-    int c;
-    int d;
 
-    c = 80;
-    d = 5;
+    int c = 80;
+    int d = 5;
 
     testint(c, d);
 
