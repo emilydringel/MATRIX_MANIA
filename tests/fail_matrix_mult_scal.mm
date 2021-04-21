@@ -1,13 +1,14 @@
 def matrix<int> multiply_s(matrix<int> x, int y){
-
-    matrix<int> rowscols = size(x);
+    
+    int sizeOfR1 = getRows(x);
+    int sizeOfC1= getColumns(x);
     matrix<int> empty = [0,0,0;0,0,0];
 
-    for(int i = 0; i < rowscols[0,0]; i++)
-      for(int j = 0; j < rowscols[1,0]; j++){
-        empty[i,j] = x[i,j] * y;
-    }
-      return empty;
+    for(int i = 0; i < sizeOfR1; i+1)
+	for(int j = 0; j < sizeOfC1; j+1){
+            empty[i,j] = x[i,j] * y;
+    	}
+        return empty;
 }
 
 
