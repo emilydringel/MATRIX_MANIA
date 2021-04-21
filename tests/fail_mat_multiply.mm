@@ -1,14 +1,21 @@
 def matrix<int> multiply(matrix<int> x, matrix<int> y){
-  
-matrix<int> rowscols = size(x);
-matrix<int> empty = [0,0];
+ int sizeOfR1 = getRows(x);
+    int sizeOfC1 = getColumns(x);
+    int sizeOfR2 = getRows(y);
+    int sizeOfC2= getColumns(y);
 
-for(int i = 0; i < rowscols[0,0]; i++)
-  for(int j = 0; j < rowscols[1,0]; j++){
-    empty[i,j]+= x[i,j]*b[i,j];
-  }
+    matrix<int> empty = [0,0];
+
+    for(int i = 0; i < sizeOfR1; i+1){
+        for(int j = 0; j < sizeOfC2; j+1){
+            for(int k = 0; k < sizeOfC1; k+1){
+                empty[i,j]+= x[i,k]*y[k,j];
+            }
+        }
+    }
   return empty;
 }
+ 
 def int main( ){
 
 matrix<int> m = [1,4];
