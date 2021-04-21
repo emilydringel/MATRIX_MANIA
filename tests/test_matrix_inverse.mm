@@ -1,25 +1,26 @@
 def int inverse(){
-def matrix<int> multiply_s(matrix<int> x, int y){
+    def matrix<int> multiply_s(matrix<int> x, int y){
 
-matrix<int> rowscols = size(x);
-matrix<int> empty = [0,0;0,0];
+    int sizeOfR1 = getRows(x);
+    int sizeOfC1 = getColumns(x);
+    matrix<int> empty = [0,0;0,0];
 
-for(int i = 0; i < rowscols[0,0]; i+1)
-  for(int j = 0; j < rowscols[1,0]; j+1){
-    empty[i,j] = x[i,j] * y;
-  }
-  return empty;
+    for(int i = 0; i < sizeOfR1; i+1)
+  	for(int j = 0; j < sizeOfC1; j+1){
+            empty[i,j] = x[i,j] * y;
+  	}
+  	return empty;
 }
 
 def int det(matrix<int> x){   
-  return ((x[0,0] * x[1,1]) - (x[0,1] * x[1,0]));
+    return ((x[0,0] * x[1,1]) - (x[0,1] * x[1,0]));
 }
 
 def int inverse(matrix<int> x){
 
-   int det_var = det(x);
+    int det_var = det(x);
 
-   if (det_var == 0){
+    if (det_var == 0){
       return [-1];
    }
 
