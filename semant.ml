@@ -206,26 +206,20 @@ module StringMap = Map.Make(String)
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Access(e1, e2, e3) -> 
-          let (t1, e) = expr e1 env in
-          let m_type = match t1 with
+      | Access(m, r, c) -> 
+          let (r_t, _) = expr r env in
+          let (c_t, _) = expr c env in
+          if r_t != Int || c_t != Int 
+            then raise(Failure ("index must be of type int"));
+          let (m_t, e) = expr m env in
+          let m_type = match m_t with
             Matrix(Int) -> Int
           | Matrix(Float) -> Float
           | _ -> raise (
             Failure ("illegal access of " ^
-                           string_of_typ t1))
-        in
-          let (t2, e) = expr e2 env in
-          let e2_type = match t2 with 
-            Int -> Int
-          | _ -> raise(Failure ("index must be of type int"))
-        in 
-          let (t3, e) = expr e3 env in
-          let e2_type = match t3 with 
-            Int -> Int
-          | _ -> raise(Failure ("index must be of type int"))
-        in
-        (m_type, SAccess(expr e1 env, expr e2 env, expr e3 env))
+                           string_of_typ m_t))
+          in
+          (m_type, SAccess(expr m env, expr r env, expr c env))
     in
     
     (*
@@ -280,6 +274,45 @@ module StringMap = Map.Make(String)
           let (ty, ex) = expr e env in
           let decl_type = check_assign t ty "Type not correct" in
           (SVarDecl(t, s, expr e env), StringMap.add s decl_type env)
+      | Update(m, r, c, e) -> 
+          let (r_t, _) = expr r env in
+          let (c_t, _) = expr c env in
+          if r_t != Int || c_t != Int 
+            then raise(Failure ("index must be of type int"));
+          (*let (r_type, c_type) = match (r_t, c_t) with 
+                Int, Int -> Int, Int
+              | _ -> raise(Failure ("index must be of type int"))
+          in *)
+          let (m_t, _) = expr m env in
+          let m_type = match m_t with
+              Matrix(Int) -> Int
+            | Matrix(Float) -> Float
+            | _ -> raise (
+              Failure ("illegal access of " ^
+                            string_of_typ m_t)) in
+          let (e_t, e_e) = expr e env in
+          ignore(check_assign m_type e_t "Matrix type and expression type do not match");
+          (SUpdate(expr m env, expr r env, expr c env, expr e env), env)
+
+        (*let (t1, e) = expr e1 env in
+          let m_type = match t1 with
+            Matrix(Int) -> Int
+          | Matrix(Float) -> Float
+          | _ -> raise (
+            Failure ("illegal access of " ^
+                           string_of_typ t1))
+        in
+          let (t2, e) = expr e2 env in
+          let e2_type = match t2 with 
+            Int -> Int
+          | _ -> raise(Failure ("index must be of type int"))
+        in 
+          let (t3, e) = expr e3 env in
+          let e2_type = match t3 with 
+            Int -> Int
+          | _ -> raise(Failure ("index must be of type int"))
+        in
+        (m_type, SAccess(expr e1 env, expr e2 env, expr e3 env))*)
 
     in (* body of check_function *)
     { styp = func.typ;

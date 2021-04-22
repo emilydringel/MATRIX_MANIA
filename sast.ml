@@ -19,6 +19,7 @@ and sx =
 type sstmt =
     SBlock of sstmt list
   | SVarDecl of typ * string * sexpr
+  | SUpdate of sexpr * sexpr * sexpr * sexpr
   | SExpr of sexpr
   | SReturn of sexpr
   | SIf of sexpr * sstmt * sstmt
@@ -111,6 +112,8 @@ let rec string_of_sstmt = function
   | SBreak -> "break \n"
   | SContinue -> "continue \n"
   | SVarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_sexpr e ^ "\n"
+  | SUpdate(m, r, c, e) -> string_of_sexpr e ^ "[" ^ string_of_sexpr e ^ "," ^ 
+                          string_of_sexpr e ^ "] =" ^ string_of_sexpr e ^ "\n"
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^

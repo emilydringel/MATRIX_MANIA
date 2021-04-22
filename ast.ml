@@ -29,6 +29,7 @@ type expr =
 type stmt =
     Block of stmt list
   | VarDecl of typ * string * expr
+  | Update of expr * expr * expr * expr
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
@@ -125,6 +126,8 @@ let rec string_of_stmt = function
   | Break -> "break \n"
   | Continue -> "continue \n"
   | VarDecl(t, s, e) -> string_of_typ t ^ " " ^ s ^ "=" ^ string_of_expr e ^ "\n"
+  | Update(m, r, c, e) -> string_of_expr e ^ "[" ^ string_of_expr e ^ "," ^ 
+                          string_of_expr e ^ "] =" ^ string_of_expr e ^ "\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^

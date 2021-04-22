@@ -154,19 +154,20 @@ let translate (functions) =
 				| SAssign (s, e) -> let e' = expr builder e in
 					ignore(L.build_store e' (lookup s) builder); e'
 				| SAccess ((ty, _) as m, r, c) ->
+					(* get desired pointer location *)
 					let matrix = expr builder m in
 					let row_idx = expr builder r in
 					let col_idx = expr builder c in 
 					let cols = (* get number of columns  *)
 						let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
 						L.build_load ptr "cols" builder in
+					(* row = row_idx * cols *)
 					let row = L.build_mul row_idx cols "row" builder in 
-						(* row_idx * cols *)
+					(* row_col = (row_idx * cols) + col_idx *)
 					let row_col = L.build_add row col_idx "row_col" builder in 
-						(* (row_idx * cols) + col_idx *)
 					let offset = L.const_int i32_t 2 in 
+					(* idx = 2 + (row_idx * cols) + col_idx *)
 					let idx = L.build_add offset row_col "idx" builder in
-						(* 2 + (row_idx * cols) + col_idx *)
 					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
 					L.build_load ptr "element" builder
 				(* (ty, SBinop((t1, e1'), op, (t2, e2'))) *)
@@ -300,14 +301,30 @@ let translate (functions) =
 				(* Implement for loops as while loops *)
 				| SFor (e1, e2, e3, body) -> stmt builder
 					( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-				| SVarDecl (t, id, e) -> (*match t with
-						A.Matrix(t) -> (* do stuff*)
-								builder
-						| _ -> *)
+				| SVarDecl (t, id, e) -> 
 							let local_var = L.build_alloca (ltype_of_typ t) id builder in 
 							Hashtbl.add var_hash id local_var;
 							let e' = expr builder e in
-							ignore(L.build_store e' (lookup id) builder); builder
+							ignore(L.build_store e' (lookup id) builder); builder	
+				| SUpdate (m, r, c, e) -> 
+						(* get desired pointer location *)
+						let matrix = expr builder m in
+						let row_idx = expr builder r in
+						let col_idx = expr builder c in 
+						let cols = (* get number of columns  *)
+							let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
+							L.build_load ptr "cols" builder in
+						(* row = row_idx * cols *)
+						let row = L.build_mul row_idx cols "row" builder in 
+						(* row_col = (row_idx * cols) + col_idx *)
+						let row_col = L.build_add row col_idx "row_col" builder in 
+						let offset = L.const_int i32_t 2 in 
+						(* idx = 2 + (row_idx * cols) + col_idx *)
+						let idx = L.build_add offset row_col "idx" builder in
+						let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
+						(* update value at that location *)
+						let e' = expr builder e in
+						ignore(L.build_store e' ptr builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)

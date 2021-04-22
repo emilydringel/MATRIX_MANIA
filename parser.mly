@@ -112,20 +112,22 @@ elifs:
                                             { If($3, $5, $6)        }
 
 stmt:
-    typ ID ASSIGN expr SEMI                 { VarDecl($1, $2, $4) }
-  | expr SEMI                               { Expr $1               }
-  | BREAK SEMI                              { Break                 }
-  | CONTINUE SEMI                           { Continue              }
-  | RETURN expr_opt SEMI                    { Return $2             }
-  | block_stmt                              { $1                    }
+    typ ID ASSIGN expr SEMI                 { VarDecl($1, $2, $4)    }
+  | expr LBRACK expr COMMA expr RBRACK ASSIGN expr SEMI          
+                                            { Update($1, $3, $5, $8) }
+  | expr SEMI                               { Expr $1                }
+  | BREAK SEMI                              { Break                  }
+  | CONTINUE SEMI                           { Continue               }
+  | RETURN expr_opt SEMI                    { Return $2              }
+  | block_stmt                              { $1                     }
   | IF LPAREN expr RPAREN block_stmt %prec NOELSE 
-                                            { If($3, $5, Block([])) } 
+                                            { If($3, $5, Block([]))  } 
   | IF LPAREN expr RPAREN block_stmt ELSE block_stmt    
-                                            { If($3, $5, $7)        } 
-  | IF LPAREN expr RPAREN block_stmt elifs  { If($3, $5, $6)        } 
+                                            { If($3, $5, $7)         } 
+  | IF LPAREN expr RPAREN block_stmt elifs  { If($3, $5, $6)         } 
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
-                                            { For($3, $5, $7, $9)   }
-  | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
+                                            { For($3, $5, $7, $9)    }
+  | WHILE LPAREN expr RPAREN stmt           { While($3, $5)          }
 
 expr_opt:
     /* nothing */ { Noexpr }
