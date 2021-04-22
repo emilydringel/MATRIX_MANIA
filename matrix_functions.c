@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void printm(int* element_one) /* prints the matrix<int> */
+int printm(int* element_one) /* prints the matrix<int> */
 {
     int rows = element_one[0];
     int cols = element_one[1];
@@ -27,6 +27,7 @@ void printm(int* element_one) /* prints the matrix<int> */
         }
     }
     printf("%s\n", matrix);
+    return 0;
 }
 
 void printmf(float* element_one) /* prints the matrix<int> */

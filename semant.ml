@@ -35,17 +35,17 @@ module StringMap = Map.Make(String)
   (* Collect function declarations for built-in functions: no bodies *)
   
   let built_in_decls = 
-    let add_bind map (name, ty) = StringMap.add name {
-      typ = Void;
+    let add_bind map (name, ty, ret) = StringMap.add name {
+      typ = ret;
       fname = name; 
       formals = [(ty, "x")];
       body = [] } map
       (*locals = []; body = [] } map*)
-    in List.fold_left add_bind StringMap.empty [ ("size", Matrix(Int));
-                               ("print", Int);
-			                         ("printm", Matrix(Int));
-                               ("printmf", Matrix(Float)); (* Not working *)
-			                         ("printf", Float)]
+    in List.fold_left add_bind StringMap.empty [ ("getRows", Matrix(Int), Int); ("getColumns", Matrix(Int), Int);
+                               ("print", Int, Void);
+			                         ("printm", Matrix(Int), Void);
+                               ("printmf", Matrix(Float), Void); (* Not working *)
+			                         ("printf", Float, Void)]
   in
 
   (* Add function name to symbol table *)

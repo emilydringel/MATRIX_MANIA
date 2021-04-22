@@ -16,10 +16,11 @@ let translate (functions) =
 	and array_t = L.array_type
 	and void_t     = L.void_type   context in
 
-	let ltype_of_typ = function
+	let rec ltype_of_typ = function
 		  A.Int -> i32_t 
 		| A.Float -> float_t 
 		| A.Void  -> void_t
+		| A.Matrix(t) -> L.pointer_type (ltype_of_typ t)
 		(*| A.Matrix(t, r, c) ->
 			let rows = match r with IntLit(s) -> s 
 															| _ -> raise(Failure"Integer required for matrix dimension") in
@@ -113,7 +114,7 @@ let translate (functions) =
 					let cols = count (List.hd l) in
 
 					(* allocate space 2 + rows * cols*)
-					let matrix = L.build_alloca i32_t "matrix" builder in
+					let matrix = L.build_alloca (L.array_type i32_t (2+rows*cols)) "matrix" builder in
 					
 					(* go through list of lists and put in place *)
 					(*build_store v p b creates a store %v, %p instruction at 
@@ -126,13 +127,13 @@ let translate (functions) =
 					let unfolded = [L.const_int i32_t rows; L.const_int i32_t cols] @ unfolded in
 					
 					let rec store idx lst = match lst with
-						 hd::tl -> let ptr = L.build_in_bounds_gep matrix [|L.const_int i32_t idx|] "ptr" builder in
+						 hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t idx|] "ptr" builder in
 											 L.build_store hd ptr builder;
 											 store (idx + 1) tl;
 						| _ -> ()
 					in
 					store 0 unfolded;
-					L.build_in_bounds_gep matrix [|L.const_int i32_t 0|] "matrix" builder 
+					L.build_in_bounds_gep matrix [|L.const_int i32_t 0; L.const_int i32_t 0|] "matrix" builder 
 					
 					(*List.fold_left (fun idx element -> build_gep matrix 2 name builder)
 					
@@ -203,6 +204,15 @@ let translate (functions) =
 					L.build_call printm_func [| (expr builder e) |] "printm" builder
 				| SCall ("printmf", [e]) ->
 					L.build_call printmf_func [| (expr builder e)|] "printmf" builder
+				| SCall ("getRows", [e]) ->
+					let matrix = expr builder e in
+					(*let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t 0|] "ptr" builder in*)
+					L.build_load matrix "rows" builder
+				| SCall ("getColumns", [e]) ->
+					let matrix = expr builder e in
+					(*let value = L.build_load matrix "m" builder in*)
+					let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1|] "ptr" builder in
+					L.build_load ptr "cols" builder
 	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -273,10 +283,10 @@ let translate (functions) =
 				(* Implement for loops as while loops *)
 				| SFor (e1, e2, e3, body) -> stmt builder
 					( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-				| SVarDecl (t, id, e) -> match t with
+				| SVarDecl (t, id, e) -> (*match t with
 						A.Matrix(t) -> (* do stuff*)
 								builder
-						| _ -> 
+						| _ -> *)
 							let local_var = L.build_alloca (ltype_of_typ t) id builder in 
 							Hashtbl.add var_hash id local_var;
 							let e' = expr builder e in
