@@ -2,8 +2,8 @@ def matrix<int> transpose(matrix<int> original, matrix<int> result){
     int sizeOfR1 = getRows(original);
     int sizeOfC1= getColumns(original);
 
-    for(int i = 0; i < sizeOfR1; i+=1){
-	for(int j = 0; j < sizeOfC1; j+=1){
+    for(int i = 0; i < sizeOfR1; i+1){
+	for(int j = 0; j < sizeOfC1; j+1){
             result[i,j] = original[j,i];
 	}
 }
