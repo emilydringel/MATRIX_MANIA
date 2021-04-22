@@ -5,8 +5,8 @@ def matrix<int> multiply_s(matrix<int> x, int y){
     int sizeOfC1 = getColumns(x);
     matrix<int> empty = [0,0;0,0];
 
-    for(int i = 0; i < rowscols[0,0]; i+1)
-  	for(int j = 0; j < rowscols[1,0]; j+1){
+    for(int i = 0; i < rowscols[0,0]; i=i+1)
+  	for(int j = 0; j < rowscols[1,0]; j=j+1){
     	    empty[i,j] = x[i,j] * y;
   	}
   	return empty;
