@@ -9,4 +9,4 @@ def int main(){
      print(3);
  }
 }
-
+} /* Fail: too many closing braces */
