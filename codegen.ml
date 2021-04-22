@@ -153,6 +153,23 @@ let translate (functions) =
 					L.build_load (lookup s) s builder
 				| SAssign (s, e) -> let e' = expr builder e in
 					ignore(L.build_store e' (lookup s) builder); e'
+				| SAccess ((ty, _) as m, r, c) ->
+					let matrix = expr builder m in
+					let row_idx = expr builder r in
+					let col_idx = expr builder c in 
+					let cols = (* get number of columns  *)
+						let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
+						L.build_load ptr "cols" builder in
+					let row = L.build_mul row_idx cols "row" builder in 
+						(* row_idx * cols *)
+					let row_col = L.build_add row col_idx "row_col" builder in 
+						(* (row_idx * cols) + col_idx *)
+					let offset = L.const_int i32_t 2 in 
+					let idx = L.build_add offset row_col "idx" builder in
+						(* 2 + (row_idx * cols) + col_idx *)
+					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
+					L.build_load ptr "element" builder
+				(* (ty, SBinop((t1, e1'), op, (t2, e2'))) *)
 				| SBinop ((A.Float, _) as e1, op, e2) -> 
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in

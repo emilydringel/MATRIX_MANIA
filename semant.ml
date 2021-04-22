@@ -206,16 +206,26 @@ module StringMap = Map.Make(String)
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-      | Access(e1, l1, l2) -> 
-          let (t,e) = expr e1 env in
-          let ty = match t with
+      | Access(e1, e2, e3) -> 
+          let (t1, e) = expr e1 env in
+          let m_type = match t1 with
             Matrix(Int) -> Int
           | Matrix(Float) -> Float
           | _ -> raise (
             Failure ("illegal access of " ^
-                           string_of_typ t))
-          in
-        (ty, SAccess(expr e1 env, l1, l2))
+                           string_of_typ t1))
+        in
+          let (t2, e) = expr e2 env in
+          let e2_type = match t2 with 
+            Int -> Int
+          | _ -> raise(Failure ("index must be of type int"))
+        in 
+          let (t3, e) = expr e3 env in
+          let e2_type = match t3 with 
+            Int -> Int
+          | _ -> raise(Failure ("index must be of type int"))
+        in
+        (m_type, SAccess(expr e1 env, expr e2 env, expr e3 env))
     in
     
     (*

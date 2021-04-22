@@ -19,6 +19,7 @@ test: matrixmania.native c_functions/matrix_functions.o
 	rm test.ll
 	rm myexe
 	rm test.s
+	rm c_functions/*.o
 
 .PHONY : all
 all: clean matrixmania.native c_functions/matrix_functions.o
@@ -30,4 +31,4 @@ clean:
 	rm -f *.native
 	rm -f parser.ml parser.mli parser.output
 	rm -rf _build
-	rm -f *.o
+	rm -f c_functions/*.o *.o

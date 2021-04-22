@@ -13,7 +13,7 @@ and sx =
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
   | SCall of string * sexpr list
-  | SAccess of sexpr * int * int (*SAccess of sexpr * sint * sint*)
+  | SAccess of sexpr * sexpr * sexpr (*SAccess of sexpr * sint * sint*)
   | SNoexpr
 
 type sstmt =
@@ -87,8 +87,8 @@ let rec string_of_sexpr (t, e) =
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SNoexpr -> "(" ^ ")"	(* Edited to make run??*)	
-  | SAccess(e, i1, i2) ->    
-      string_of_sexpr e ^ " " ^ string_of_int i1 ^ " " ^ string_of_int i2 (* changed from sint to int *)
+  | SAccess(e1, e2, e3) ->    
+    string_of_sexpr e1 ^ " " ^ string_of_sexpr e2 ^ " " ^ string_of_sexpr e3 (* changed from sint to int *)
  (* | _ -> "" *)
 
 let rec string_of_sstmt = function

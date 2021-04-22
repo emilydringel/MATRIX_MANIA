@@ -23,7 +23,7 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
-  | Access of expr * int * int
+  | Access of expr * expr * expr
   | Noexpr
 
 type stmt =
@@ -102,8 +102,8 @@ let string_of_row l =
   String.concat "" (List.map string_of_expr l)
 in
 String.concat "" (List.map string_of_row l)
-| Access(e, i1, i2) ->    
-string_of_expr e ^ " " ^ string_of_int i1 ^ " " ^ string_of_int i2 
+| Access(e1, e2, e3) ->    
+string_of_expr e1 ^ " " ^ string_of_expr e2 ^ " " ^ string_of_expr e3
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

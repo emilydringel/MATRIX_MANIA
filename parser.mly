@@ -168,7 +168,7 @@ matrix_primitives:
 */
 
 matrix_access:
-  expr LBRACK INTLIT COMMA INTLIT RBRACK { Access($1, $3, $5) }
+  expr LBRACK expr COMMA expr RBRACK { Access($1, $3, $5) }
 /* before this $3 and $5 were LITERAL, but parser said that terminal $3 had no argument */ 
 
 matrix_row: 
