@@ -5,3 +5,6 @@ parser.mli
 scanner.ml
 _build
 *.native
+*.log
+*.diff
+*.o

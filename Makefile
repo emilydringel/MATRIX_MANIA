@@ -8,20 +8,20 @@ scanner.native: scanner.mll
 	ocamlbuild -r scanner.native
 
 printm.o:
-	gcc -c matrix_functions.c
+	gcc -c c_functions/matrix_functions.c
 
-test: matrixmania.native matrix_functions.o
+test: matrixmania.native c_functions/matrix_functions.o
 	./matrixmania.native $(filename) > test.ll
 	echo -n "output: "
 	llc -relocation-model=pic test.ll
-	gcc -o myexe test.s matrix_functions.o
+	gcc -o myexe test.s c_functions/matrix_functions.o
 	./myexe
 	rm test.ll
 	rm myexe
 	rm test.s
 
 .PHONY : all
-all: clean matrixmania.native matrix_functions.o
+all: clean matrixmania.native c_functions/matrix_functions.o
 
 .PHONY : clean
 clean:
