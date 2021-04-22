@@ -1,7 +1,8 @@
-def int pass(matrix<int> ){ /*Fail: missing variable name */
-	matrix<int> a = [1,2];
-	matrix<int> temp = a;
+def void pass(matrix<int> a){
+        matrix<int> temp = a;
+        printm(temp);
 }
 def int main(){
-	printm(temp);
+        matrix<int> a = [1,2];
+        pass(a);
 }
