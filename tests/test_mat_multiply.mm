@@ -9,14 +9,14 @@ def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
     }
   }
   /* return empty; */
-    matrix<int> result = matrix<int> empty;
+  /*  matrix<int> result = matrix<int> empty; */
 }
 
 def int main(){
 
   matrix<int> empty3 = [0,0];
   matrix<int> a = multiply([1,1],[2,2],empty3);
-  printm(a);
+  printm(empty);
 
   matrix<int> m = [1,4];
   matrix<int> n = [2,3];
