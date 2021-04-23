@@ -17,7 +17,8 @@ def int main(){
   matrix<int> empty3 = [0,0];
   multiply([1,1],[2,2],empty3);
   printm(empty);
-
+  
+  /*
   matrix<int> m = [1,4];
   matrix<int> n = [2,3];
   matrix<int> empty = [0,0];
@@ -31,5 +32,5 @@ def int main(){
   printm(n);
   printm(multiplied);
   printm(multiplied2);
-
+  */
 }
