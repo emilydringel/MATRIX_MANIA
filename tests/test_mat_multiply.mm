@@ -15,7 +15,7 @@ def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
 def int main(){
 
   matrix<int> empty3 = [0,0];
-  matrix<int> a = multiply([1,1],[2,2],empty3);
+  multiply([1,1],[2,2],empty3);
   printm(empty);
 
   matrix<int> m = [1,4];
