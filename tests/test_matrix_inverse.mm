@@ -5,8 +5,8 @@ def int inverse(){
     int sizeOfC1 = getColumns(x);
     matrix<int> empty = [0,0;0,0];
 
-    for(int i = 0; i < sizeOfR1; i+1)
-  	for(int j = 0; j < sizeOfC1; j+1){
+    for(int i = 0; i < sizeOfR1; i=i+1)
+  	for(int j = 0; j < sizeOfC1; j=j+1){
             empty[i,j] = x[i,j] * y;
   	}
   	return empty;
