@@ -13,6 +13,7 @@ let translate (functions) =
 	and i8_t = L.i8_type context
 	and i1_t = L.i1_type context
 	and float_t    = L.double_type context
+	and i64_t = L.i64_type context
 	and array_t = L.array_type
 	and void_t     = L.void_type   context in
 
@@ -66,7 +67,7 @@ let translate (functions) =
       L.declare_function "printm" printm_t the_module in
 
 	let printmf_t : L.lltype =
-			L.function_type i32_t [| array_t float_t 8 |] in
+			L.function_type i32_t [| L.pointer_type float_t |] in
 	let printmf_func : L.llvalue =
 			L.declare_function "printmf" printmf_t the_module in
 	let addm_t : L.lltype = 
@@ -121,33 +122,73 @@ let translate (functions) =
 	      | SFliteral l -> L.const_float_of_string float_t l
 	      | SNoexpr -> L.const_int i32_t 0
 				| SMatrixLit l -> 
-					(* (sexpr list) list *)
-					(* extract rows and column info here *)
-					let count a = List.fold_left (fun x _ -> x + 1) 0 a in
-					let rows = count l in 
-					let cols = count (List.hd l) in
-
-					(* allocate space 2 + rows * cols*)
-					let matrix = L.build_alloca (L.array_type i32_t (2+rows*cols)) "matrix" builder in
-					
-					(* go through list of lists and put in place *)
-					(*build_store v p b creates a store %v, %p instruction at 
-					the position specified by the instruction builder b. *)
-
-					let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
-					let eval_row row 
-					  = List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
-					let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
-					let unfolded = [L.const_int i32_t rows; L.const_int i32_t cols] @ unfolded in
-					
-					let rec store idx lst = match lst with
-						 hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t idx|] "ptr" builder in
-											 L.build_store hd ptr builder;
-											 store (idx + 1) tl;
-						| _ -> ()
+					let find_inner_type l = match l with
+							hd::tl -> let (t,e) = hd in t
+						| _ -> A.Int
 					in
-					store 0 unfolded;
-					L.build_in_bounds_gep matrix [|L.const_int i32_t 0; L.const_int i32_t 0|] "matrix" builder 
+					
+					let find_type mat = match mat with
+							hd::tl -> find_inner_type hd
+						| _ -> A.Int
+					in
+
+					let my_type = find_type l in 
+
+					let make_matrix = match my_type with
+						A.Int ->
+							(* (sexpr list) list *)
+							(* extract rows and column info here *)
+							let count a = List.fold_left (fun x _ -> x + 1) 0 a in
+							let rows = count l in 
+							let cols = count (List.hd l) in
+
+							(* allocate space 2 + rows * cols*)
+							let matrix = L.build_alloca (L.array_type i32_t (2+rows*cols)) "matrix" builder in
+							
+							(* go through list of lists and put in place *)
+							(*build_store v p b creates a store %v, %p instruction at 
+							the position specified by the instruction builder b. *)
+
+							let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
+							let eval_row row 
+								= List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
+							let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
+							let unfolded = [L.const_int i32_t rows; L.const_int i32_t cols] @ unfolded in
+							
+							let rec store idx lst = match lst with
+								hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t idx|] "ptr" builder in
+													L.build_store hd ptr builder;
+													store (idx + 1) tl;
+								| _ -> ()
+							in
+							store 0 unfolded;
+							L.build_in_bounds_gep matrix [|L.const_int i32_t 0; L.const_int i32_t 0|] "matrix" builder 
+					| A.Float ->
+						let count a = List.fold_left (fun x _ -> x + 1) 0 a in
+						let rows = float_of_int (count l) in 
+						let cols = float_of_int (count (List.hd l)) in
+
+						(* allocate space 2 + rows * cols*)
+						let matrix = L.build_alloca (L.array_type float_t (2+(int_of_float rows)*(int_of_float cols))) "matrix" builder in
+						
+						(* go through list of lists and put in place *)
+						(*build_store v p b creates a store %v, %p instruction at 
+						the position specified by the instruction builder b. *)
+
+						(*let all_good = (List.fold_left (fun same row -> (count (int_of_float row)) == (int_of_float cols)) true l ) in*)
+						let eval_row row 
+							= List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
+						let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
+						let unfolded = [L.const_float float_t rows; L.const_float float_t cols] @ unfolded in
+						let rec store idx lst = match lst with
+							hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i64_t 0; L.const_int i64_t idx|] "ptr" builder in
+												L.build_store hd ptr builder;
+												store (idx + 1) tl;
+							| _ -> ()
+						in
+						store 0 unfolded;
+						L.build_in_bounds_gep matrix [| L.const_int i64_t 0; L.const_int i64_t 0|] "matrix" builder 
+					in make_matrix
  				| SId s       -> 
 					L.build_load (lookup s) s builder
 				| SAssign (s, e) -> let e' = expr builder e in
@@ -239,10 +280,23 @@ let translate (functions) =
 					L.build_call printmf_func [| (expr builder e)|] "printmf" builder
 				| SCall ("getRows", [e]) ->
 					let matrix = expr builder e in
-					get_matrix_rows matrix builder
+					(*let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t 0|] "ptr" builder in*)
+					let typ = L.string_of_lltype (L.type_of matrix) in
+					let ret = match typ with
+						"double*" -> let rows = L.build_load matrix "rows" builder 
+							in L.build_fptosi rows i32_t "rowsint" builder 
+						| _ -> L.build_load matrix "rows" builder
+					in ret
 				| SCall ("getColumns", [e]) ->
 					let matrix = expr builder e in
-					get_matrix_cols matrix builder
+					(*let value = L.build_load matrix "m" builder in*)
+					let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1|] "ptr" builder in
+					let typ = L.string_of_lltype (L.type_of ptr) in
+					let ret = match typ with
+						"double*" -> let cols = L.build_load ptr "cols" builder 
+							in L.build_fptosi cols i32_t "colsint" builder 
+						| _ -> L.build_load ptr "cols" builder
+					in ret
 	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in
