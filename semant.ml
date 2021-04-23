@@ -41,7 +41,7 @@ module StringMap = Map.Make(String)
       formals = [(ty, "x")];
       body = [] } map
       (*locals = []; body = [] } map*)
-    in List.fold_left add_bind StringMap.empty [ ("getRows", Matrix(Int), Int); ("getColumns", Matrix(Int), Int);
+    in List.fold_left add_bind StringMap.empty [ (*("getRows", Matrix(Int), Int); ("getColumns", Matrix(Int), Int);*)
                                ("print", Int, Void);
 			                         ("printm", Matrix(Int), Void);
                                ("printmf", Matrix(Float), Void); (* Not working *)
@@ -196,6 +196,28 @@ module StringMap = Map.Make(String)
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
+      | Call("getRows", args) -> 
+          if List.length args != 1 then
+            raise (Failure ("expecting " ^ string_of_int 1 ^ 
+                            " arguments in " ^ "getRows"))
+          else let head = List.hd args in
+          let (et, e') = expr head env in
+          (*let typ = match et with
+                Matrix(Int) -> Int
+              | Matrix(Float) -> Float
+              | _ -> raise(Failure("illegal argument found in getRows/Columns"))
+          in *) (Int, SCall("getRows", [(et, e')]))
+      | Call("getColumns", args) -> 
+          if List.length args != 1 then
+            raise (Failure ("expecting " ^ string_of_int 1 ^ 
+                            " arguments in " ^ "getColumns"))
+          else let head = List.hd args in
+          let (et, e') = expr head env in
+          (*let typ = match et with
+                Matrix(Int) -> Int
+              | Matrix(Float) -> Float
+              | _ -> raise(Failure("illegal argument found in getRows/Columns"))
+          in*) (Int, SCall("getColumns", [(et, e')]))
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -252,6 +274,7 @@ module StringMap = Map.Make(String)
       let (st, en) =  check_stmt s env in
       (SWhile(expr p env, st), env)
       | Return e -> let (t, e') = expr e env in
+        if t = Matrix(Int) || t=Matrix(Float) then raise( Failure("cannot return a matrix"));
         if t = func.typ then (SReturn (t, e'), env) 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^

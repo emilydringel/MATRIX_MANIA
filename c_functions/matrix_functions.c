@@ -31,7 +31,7 @@ int printm(int* element_one) /* prints the matrix<int> */
     return 0;
 }
 
-void printmf(float* element_one) /* prints the matrix<int> */
+void printmf(double* element_one) /* prints the matrix<int> */
 {
     int rows = (int) element_one[0];
     int cols = (int) element_one[1];
