@@ -3,7 +3,7 @@ def int main(){
     while(i < 101){
 		int sum = 0;
 		sum = sum + i;
-		i+1;
+		i = i+1;
     }
 	print(sum);
 }
