@@ -1,1 +1,1 @@
-Fatal error: exception Failure("Not defined in scope")
+Fatal error: exception Failure("undeclared identifier z")

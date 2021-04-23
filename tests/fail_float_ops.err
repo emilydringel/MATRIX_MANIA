@@ -1,1 +1,1 @@
-Fatal error: exception Failure("incompatible types expected float instead of int")
+Fatal error: exception Failure("Type not correct")
