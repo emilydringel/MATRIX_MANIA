@@ -1,3 +1,3 @@
-def int main( ){
+def int main(){
     matrix<int> x = [1];
 }
