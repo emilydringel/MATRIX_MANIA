@@ -1,4 +1,5 @@
 def matrix<int> multiply_s(matrix<int> x, matrix<int> empty, int y){
+    
     int sizeOfR1 = getRows(x);
     int sizeOfC1= getColumns(x);
 
