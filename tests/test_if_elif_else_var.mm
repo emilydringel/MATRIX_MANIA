@@ -4,7 +4,7 @@ def int main(){
  int z = 2;
  if(x) {
      print(x);
- } else if (y) {
+ } elif (y) {
      print(y);
  } else {
      print(z);

@@ -3,7 +3,8 @@ def int main( ){
     int y = 4;
     if(x == y) {
         print(x);
-    } else {
+    } 
+    else {
         print(y);
     }
 }
