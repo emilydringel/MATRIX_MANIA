@@ -1,19 +1,19 @@
-def matrix<int> multiply_s(matrix<int> x, int y){
+def matrix<int> multiply_s(matrix<int> x, matrix<int> empty, int y){
     int sizeOfR1 = getRows(x);
     int sizeOfC1= getColumns(x);
-    matrix<int> empty = [0,0,0;0,0,0];
 
-    for(int i = 0; i < sizeOfR1; i+1)
-  	for(int j = 0; j < sizeOfC1; j+1){
+    for(int i = 0; i < sizeOfR1; i=i+1)
+  	for(int j = 0; j < sizeOfC1; j=j+1){
     	    empty[i,j] = x[i,j] * y;
   	}
   	return empty;
 }
 
 
-def int main( ){
+def int main(){
   
     matrix<int> m = [1,4,3;2,7,6];
+    matrix<int> empty = [0,0,0;0,0,0];
     int n = 2;  
 
     matrix<int> multiplied = multiply_s(m,n);

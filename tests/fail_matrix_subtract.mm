@@ -1,26 +1,27 @@
-def matrix<int> add(matrix<int> x, matrix<int> y){
-  
-matrix<int> rowscols = size(x);
-matrix<int> empty = [0,0];
+def matrix<int> sub(matrix<int> x, matrix<int> y, matrix<int> empty){
 
-for(int i = 0; i < rowscols[0,0]; i++)
-  for(int j = 0; j < rowscols[1,0]; j++){
-    empty[i,j] = x[i,j]-y[i,j];
-  }
-  return empty;
+    int sizeOfR1 = getRows(x);
+    int sizeOfC1 = getColumns(x);
+
+    for(int i = 0; i < sizeOfR1; i+1)
+        for(int j = 0; j < sizeOfC1; j+1){
+            empty[i,j] = x[i,j]-y[i,j];
+        }
+/* Fail: missing return */
 }
 
 
-def int main( ){
+def int main(){
+  
+    matrix<int> m = [1,4];
+    matrix<int> n = [2,3];
+    matrix<int> empty = [0,0];
 
-matrix<int> m = [1,4];
-matrix<int> n = [2,3];
+    matrix<int> subtract = sub(m,n);
 
-matrix<int> subtract = sub(m,n);
-
-  printm(m);
-  printm(n);
-  printm(subtract);
-  printm(sub([6,8,1; 9,10])); /* Fail: invalid matrix dims */
+    printm(m);
+    printm(n);
+    printm(subtract);
+    printm(sub([6,8],[9,10]));
 }
 
