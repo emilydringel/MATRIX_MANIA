@@ -94,7 +94,7 @@ Check() {
     generatedfiles="$generatedfiles ${basename}.ll ${basename}.s ${basename}.exe ${basename}.out" &&
     Run "$MICROC" "$1" ">" "${basename}.ll" &&
     Run "$LLC" "-relocation-model=pic" "${basename}.ll" ">" "${basename}.s" &&
-    Run "$GCC" "-o" "${basename}.exe" "${basename}.s" "printm.o" &&
+    Run "$GCC" "-o" "${basename}.exe" "${basename}.s" "c_functions/matrix_functions.o" &&
     Run "./${basename}.exe" > "${basename}.out" &&
     Compare ${basename}.out ${reffile}.out ${basename}.diff
 
