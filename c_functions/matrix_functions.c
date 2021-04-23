@@ -2,6 +2,7 @@
  *  matrix_functions.c
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -52,6 +53,20 @@ void printmf(float* element_one) /* prints the matrix<int> */
         }
     }
     printf("%s\n", matrix);
+}
+
+int* addm(int* m1, int* m2) 
+{
+    int rows = (int) m1[0];
+    int cols = (int) m1[1];
+    int size = 2 + rows * cols;
+    int* m = malloc(sizeof(int) * size);
+    m[0] = rows;
+    m[1] = cols;
+    for (int i = 2; i < size; i++) {
+        m[i] = m1[i] + m2[i];
+    }
+    return m;
 }
 
 /*
