@@ -20,6 +20,4 @@ def int main(){
     int d = 5;
 
     testint(c, d);
-
-    testint(d, d);
 }
