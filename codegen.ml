@@ -43,7 +43,16 @@ let translate (functions) =
 			in StringMap.add n (L.define_global n init the_module) m in
 		List.fold_left global_var StringMap.empty globals in
 *)
-	
+  
+	(* functions to easily get number of rows/columns of stored matrix *)
+  let get_matrix_rows matrix builder = 
+	  L.build_load matrix "rows" builder
+	in
+	let get_matrix_cols matrix builder = 
+		let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
+		L.build_load ptr "cols" builder
+	in
+
 	(* Declare external functions *)
 
 	let printf_t : L.lltype =
@@ -60,6 +69,11 @@ let translate (functions) =
 			L.function_type i32_t [| array_t float_t 8 |] in
 	let printmf_func : L.llvalue =
 			L.declare_function "printmf" printmf_t the_module in
+	let addm_t : L.lltype = 
+		L.function_type (i32_t) [| L.pointer_type i32_t ; L.pointer_type i32_t|] in
+	let addm_func : L.llvalue =
+			L.declare_function "addm" printm_t the_module in
+	
 
 	(* Define each function (arguments and return type) 
 	so we can call it even before we've created its body *)
@@ -134,21 +148,6 @@ let translate (functions) =
 					in
 					store 0 unfolded;
 					L.build_in_bounds_gep matrix [|L.const_int i32_t 0; L.const_int i32_t 0|] "matrix" builder 
-					
-					(*List.fold_left (fun idx element -> build_gep matrix 2 name builder)
-					
-					L.build_store unfolded matrix builder 
-					let pointer = build_gep matrix 2 name builder i*)
-					(* creates a %name = getelementptr %p, indices *)
-					
-					(*
-					print_int(count unfolded);
-					print_int(if all_good == true then 1 else 0);
-					print_int(rows);
-					print_int(cols); 
-					L.const_int i32_t 0
-					*)
-					(*L.const_array i32_t (Array.of_list unfolded)*)
  				| SId s       -> 
 					L.build_load (lookup s) s builder
 				| SAssign (s, e) -> let e' = expr builder e in
@@ -158,9 +157,7 @@ let translate (functions) =
 					let matrix = expr builder m in
 					let row_idx = expr builder r in
 					let col_idx = expr builder c in 
-					let cols = (* get number of columns  *)
-						let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
-						L.build_load ptr "cols" builder in
+					let cols = get_matrix_cols matrix builder in
 					(* row = row_idx * cols *)
 					let row = L.build_mul row_idx cols "row" builder in 
 					(* row_col = (row_idx * cols) + col_idx *)
@@ -171,6 +168,24 @@ let translate (functions) =
 					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
 					L.build_load ptr "element" builder
 				(* (ty, SBinop((t1, e1'), op, (t2, e2'))) *)
+				| SBinop ((A.Matrix(Int), _) as m1, op, m2) -> 
+					let m1' = expr builder m1
+					and m2' = expr builder m2 in
+					(match op with 
+						A.Add     -> raise(Failure "not yet implemented")
+						(*fun m_1 m_2 b ->  Attempt at using c function
+							L.build_call addm_func [| m_1 (*; m_2*) |] "addm" b*)
+					 (* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
+					| A.Sub     -> raise(Failure "not yet implemented")
+					| A.Mult    -> raise(Failure "not yet implemented")
+					| A.Div     -> raise(Failure "internal error: semant should have rejected") 
+					| A.Equal   -> raise(Failure "not yet implemented")
+					| A.Neq     -> raise(Failure "not yet implemented")
+					| A.Less | A.Leq | A.Greater | A.Geq    
+											-> raise(Failure "internal error: semant should have rejected") 
+					| A.And | A.Or ->
+							raise (Failure "internal error: semant should have rejected and/or on float")
+					) m1' m2' builder
 				| SBinop ((A.Float, _) as e1, op, e2) -> 
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in
@@ -196,7 +211,7 @@ let translate (functions) =
 						A.Add     -> L.build_add
 					| A.Sub     -> L.build_sub
 					| A.Mult    -> L.build_mul
-								| A.Div     -> L.build_sdiv
+					| A.Div     -> L.build_sdiv
 					| A.And     -> L.build_and
 					| A.Or      -> L.build_or
 					| A.Equal   -> L.build_icmp L.Icmp.Eq
@@ -224,13 +239,10 @@ let translate (functions) =
 					L.build_call printmf_func [| (expr builder e)|] "printmf" builder
 				| SCall ("getRows", [e]) ->
 					let matrix = expr builder e in
-					(*let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t 0|] "ptr" builder in*)
-					L.build_load matrix "rows" builder
+					get_matrix_rows matrix builder
 				| SCall ("getColumns", [e]) ->
 					let matrix = expr builder e in
-					(*let value = L.build_load matrix "m" builder in*)
-					let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1|] "ptr" builder in
-					L.build_load ptr "cols" builder
+					get_matrix_cols matrix builder
 	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -311,9 +323,7 @@ let translate (functions) =
 						let matrix = expr builder m in
 						let row_idx = expr builder r in
 						let col_idx = expr builder c in 
-						let cols = (* get number of columns  *)
-							let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
-							L.build_load ptr "cols" builder in
+						let cols = get_matrix_cols matrix builder in
 						(* row = row_idx * cols *)
 						let row = L.build_mul row_idx cols "row" builder in 
 						(* row_col = (row_idx * cols) + col_idx *)
