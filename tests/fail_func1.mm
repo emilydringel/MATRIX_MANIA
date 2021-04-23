@@ -8,5 +8,4 @@ def void bar() {} /* Error: duplicate function bar */
 
 def int main(){
   return 0;
-}
-~             
+}       

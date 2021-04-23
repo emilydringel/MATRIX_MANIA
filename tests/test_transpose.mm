@@ -3,10 +3,10 @@ def matrix<int> transpose(matrix<int> original, matrix<int> result){
     int sizeOfC1= getColumns(original);
 
     for(int i = 0; i < sizeOfR1; i=i+1){
-	for(int j = 0; j < sizeOfC1; j=j+1){
+	    for(int j = 0; j < sizeOfC1; j=j+1){
             result[i,j] = original[j,i];
-	}
-}
+	    }
+    }
     return result;
 }
 
