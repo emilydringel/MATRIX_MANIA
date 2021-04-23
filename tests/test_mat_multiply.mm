@@ -16,11 +16,15 @@ def int main(){
   matrix<int> m = [1,4];
   matrix<int> n = [2,3];
   matrix<int > empty = [0,0];
+  matrix<int > empty2 = [0,0];
 
-  matrix<int> multiplied = multiply(m,n);
+  matrix<int> multiplied = multiply(m,n, empty);
+  matrix<int> multiplied2 = multiply([6,8],[9,10], empty2);
+
 
   printm(m);
   printm(n);
   printm(multiplied);
-  printm(multiply([6,8],[9,10]));
+  printm(multiplied2);
+
 }
