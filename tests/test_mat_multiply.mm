@@ -2,9 +2,12 @@ def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
 
   int sizeOfR1 = getRows(x);
   int sizeOfC1 = getColumns(x);
+  
+  int i = 0;
+  int j = 0;
 
-  for(int i = 0; i < sizeOfR1; i=i+1){
-    for(int j = 0; j < sizeOfC1; j=j+1){
+  for(; i < sizeOfR1; i=i+1){
+    for(; j < sizeOfC1; j=j+1){
       empty[i,j]+= x[i,j]*y[i,j];
     }
   }
