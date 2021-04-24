@@ -6,8 +6,8 @@ def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
   int i = 0;
   int j = 0;
 
-  for(; i < sizeOfR1; i=i+1){
-    for(; j < sizeOfC1; j=j+1){
+  for(i; i < sizeOfR1; i=i+1){
+    for(j; j < sizeOfC1; j=j+1){
       empty[i,j]+= x[i,j]*y[i,j];
     }
   }
