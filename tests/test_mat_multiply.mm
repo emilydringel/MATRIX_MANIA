@@ -6,9 +6,9 @@ def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
   int i = 0;
   int j = 0;
 
-  for(i; i < sizeOfR1; i=i+1){
-    for(j; j < sizeOfC1; j=j+1){
-      empty[i,j]+= x[i,j]*y[i,j];
+  for(i = 0; i < sizeOfR1; i=i+1){
+    for(j = 0; j < sizeOfC1; j=j+1){
+      empty[i,j] = x[i,j]*y[i,j];
     }
   }
   /* return empty; */
@@ -19,7 +19,7 @@ def int main(){
 
   matrix<int> empty3 = [0,0];
   multiply([1,1],[2,2],empty3);
-  printm(empty);
+  printm(empty3);
   
   /*
   matrix<int> m = [1,4];
