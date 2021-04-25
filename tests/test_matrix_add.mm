@@ -7,11 +7,9 @@ def int main(){
     int sizeOfR1 = getRows(m);
     int sizeOfC1 = getColumns(m);
 
-    int i = 0;
-    for(i = 0; i < sizeOfR1; i=i+1){
-        int j = 0;
-    	for(j = 0; j < sizeOfC1; j=j+1){
-            empty[i,j] = m[i,j]+n[i,j];
+    for(int i = 0; i < sizeOfR1; i=i+1){
+    	for(int j = 0; j < sizeOfC1; j=j+1){
+            empty[i,j] = m[i,j] + n[i,j];
         }
     }
 
