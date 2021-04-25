@@ -11,10 +11,8 @@ let translate (functions) =
 
 	let i32_t = L.i32_type context
 	and i8_t = L.i8_type context
-	and i1_t = L.i1_type context
 	and float_t    = L.double_type context
 	and i64_t = L.i64_type context
-	and array_t = L.array_type
 	and void_t     = L.void_type   context in
 
 	let rec ltype_of_typ = function
@@ -80,10 +78,11 @@ let translate (functions) =
 			L.function_type i32_t [| L.pointer_type float_t |] in
 	let printmf_func : L.llvalue =
 			L.declare_function "printmf" printmf_t the_module in
-	let addm_t : L.lltype = 
+	(* commented out because not yet implemented to remove warnings*)
+	(*let addm_t : L.lltype = 
 		L.function_type (i32_t) [| L.pointer_type i32_t ; L.pointer_type i32_t|] in
 	let addm_func : L.llvalue =
-			L.declare_function "addm" printm_t the_module in
+			L.declare_function "addm" printm_t the_module in*)
 	
 
 	(* Define each function (arguments and return type) 
@@ -145,21 +144,24 @@ let translate (functions) =
 					let my_type = find_type l in 
 
 					let make_matrix = match my_type with
-						A.Int ->
-							(* (sexpr list) list *)
+						  A.Int ->
 							(* extract rows and column info here *)
 							let count a = List.fold_left (fun x _ -> x + 1) 0 a in
 							let rows = count l in 
 							let cols = count (List.hd l) in
+							let rec valid_dims m = match m with
+									hd::tl -> if count hd == count (List.hd l) 
+															then valid_dims tl
+														else false
+								| _ -> true
+							in 
+							if not (valid_dims l) then
+								raise(Failure "all rows of matrices must have the same number of elemens")
+							else
 
 							(* allocate space 2 + rows * cols*)
 							let matrix = L.build_alloca (L.array_type i32_t (2+rows*cols)) "matrix" builder in
 							
-							(* go through list of lists and put in place *)
-							(*build_store v p b creates a store %v, %p instruction at 
-							the position specified by the instruction builder b. *)
-
-							let all_good = (List.fold_left (fun same row -> (count row) == cols) true l ) in
 							let eval_row row 
 								= List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
 							let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
@@ -167,7 +169,7 @@ let translate (functions) =
 							
 							let rec store idx lst = match lst with
 								hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t idx|] "ptr" builder in
-													L.build_store hd ptr builder;
+													ignore(L.build_store hd ptr builder);
 													store (idx + 1) tl;
 								| _ -> ()
 							in
@@ -177,27 +179,32 @@ let translate (functions) =
 						let count a = List.fold_left (fun x _ -> x + 1) 0 a in
 						let rows = float_of_int (count l) in 
 						let cols = float_of_int (count (List.hd l)) in
+						let rec valid_dims m = match m with
+						    hd::tl -> if count hd == count (List.hd l) 
+													  then valid_dims tl
+												  else false
+              | _ -> true
+						in 
+						if not (valid_dims l) then
+							raise(Failure "all rows of matrices must have the same number of elemens")
+						else
 
 						(* allocate space 2 + rows * cols*)
 						let matrix = L.build_alloca (L.array_type float_t (2+(int_of_float rows)*(int_of_float cols))) "matrix" builder in
-						
-						(* go through list of lists and put in place *)
-						(*build_store v p b creates a store %v, %p instruction at 
-						the position specified by the instruction builder b. *)
 
-						(*let all_good = (List.fold_left (fun same row -> (count (int_of_float row)) == (int_of_float cols)) true l ) in*)
 						let eval_row row 
 							= List.fold_left (fun eval_row x -> eval_row @ [expr builder x]) [] row in 
 						let unfolded = List.fold_left (fun unfld row -> unfld @ (eval_row row)) [] l in
 						let unfolded = [L.const_float float_t rows; L.const_float float_t cols] @ unfolded in
 						let rec store idx lst = match lst with
 							hd::tl -> let ptr = L.build_in_bounds_gep matrix [| L.const_int i64_t 0; L.const_int i64_t idx|] "ptr" builder in
-												L.build_store hd ptr builder;
+												ignore(L.build_store hd ptr builder);
 												store (idx + 1) tl;
 							| _ -> ()
 						in
 						store 0 unfolded;
 						L.build_in_bounds_gep matrix [| L.const_int i64_t 0; L.const_int i64_t 0|] "matrix" builder 
+			    | _ -> raise (Failure "invalid matrix type")
 					in make_matrix
  				| SId s       -> 
 					L.build_load (lookup s) s builder
@@ -218,24 +225,19 @@ let translate (functions) =
 					let idx = L.build_add offset row_col "idx" builder in
 					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
 					L.build_load ptr "element" builder
-				(* (ty, SBinop((t1, e1'), op, (t2, e2'))) *)
 				| SBinop ((A.Matrix(Int), _) as m1, op, m2) -> 
 					let m1' = expr builder m1
 					and m2' = expr builder m2 in
 					(match op with 
-						A.Add     -> raise(Failure "not yet implemented")
+						A.Add     -> (fun n1 n2 b -> n1) (* placeholder to remove warning until implemented *)
 						(*fun m_1 m_2 b ->  Attempt at using c function
 							L.build_call addm_func [| m_1 (*; m_2*) |] "addm" b*)
 					 (* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
 					| A.Sub     -> raise(Failure "not yet implemented")
-					| A.Mult    -> raise(Failure "not yet implemented")
-					| A.Div     -> raise(Failure "internal error: semant should have rejected") 
+					| A.Mult    -> raise(Failure "not yet implemented") 
 					| A.Equal   -> raise(Failure "not yet implemented")
 					| A.Neq     -> raise(Failure "not yet implemented")
-					| A.Less | A.Leq | A.Greater | A.Geq    
-											-> raise(Failure "internal error: semant should have rejected") 
-					| A.And | A.Or ->
-							raise (Failure "internal error: semant should have rejected and/or on float")
+					| _        	-> raise(Failure "internal error: semant should have rejected")
 					) m1' m2' builder
 				| SBinop ((t1, e1), op, (t2, e2)) when t1 == A.Float ->
 					let e1' = expr builder (t1, e1)
@@ -252,7 +254,7 @@ let translate (functions) =
 					| A.Leq     -> L.build_fcmp L.Fcmp.Ole
 					| A.Greater -> L.build_fcmp L.Fcmp.Ogt
 					| A.Geq     -> L.build_fcmp L.Fcmp.Oge
-					| A.And | A.Or ->
+					| _ ->
 							raise (Failure "internal error: semant should have rejected and/or on float")
 					) e1' e2' "tmp" builder
 				| SBinop ((t1, e1), op, (t2, e2)) when t2 == A.Float -> 
@@ -270,7 +272,7 @@ let translate (functions) =
 					| A.Leq     -> L.build_fcmp L.Fcmp.Ole
 					| A.Greater -> L.build_fcmp L.Fcmp.Ogt
 					| A.Geq     -> L.build_fcmp L.Fcmp.Oge
-					| A.And | A.Or ->
+					| _ ->
 							raise (Failure "internal error: semant should have rejected and/or on float")
 					) e1' e2' "tmp" builder
 				| SBinop (e1, op, e2) -> 
@@ -347,11 +349,7 @@ let translate (functions) =
 							| _ -> L.build_ret (expr builder e) builder );
 						builder
 				| SIf (predicate, then_stmt, else_stmt) ->
-						(* let expr_val = expr builder predicate in
-						let int_val = if L.is_null expr_val then 0 else 1 in
-						let bool_val = L.const_int i1_t int_val in *)
 						let bool_val = expr builder predicate in
-						(*let bool_val = L.const_int i1_t (if 0 then 1 else 0) in *)
 						let merge_bb = L.append_block context "merge" the_function in
 									let build_br_merge = L.build_br merge_bb in (* partial function *)
 				
@@ -373,8 +371,6 @@ let translate (functions) =
 						add_terminal (stmt (L.builder_at_end context body_bb) body)
 							(L.build_br pred_bb);
 						let pred_builder = L.builder_at_end context pred_bb in
-						(* let int_val = if L.is_null (expr builder predicate) then 0 else 1 in
-						let bool_val = L.const_int i1_t int_val in *)
 						let bool_val = expr pred_builder predicate in
 						let merge_bb = L.append_block context "merge" the_function in
 						ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);

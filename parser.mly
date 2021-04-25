@@ -8,14 +8,13 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK COMMA   
 %token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
-%token /*SIZE*/ EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELIF ELSE FOR WHILE INT BREAK CONTINUE FLOAT VOID MATRIX
+%token EQ NEQ LT LEQ GT GEQ AND OR
+%token RETURN IF ELIF ELSE FOR WHILE INT FLOAT VOID MATRIX
 %token <int> INTLIT
 %token <string> ID 
 %token <string> FLIT
 %token <string> STRLIT
-%token DEF MAIN
-%token IMPORT DEFINE
+%token DEF
 %token EOF
 
 %start program
@@ -37,30 +36,11 @@
 %%
 
 program:
-  imports defines fdecls /*main*/ EOF { ($1, $2, $3) }
+  fdecls EOF { $1 }
 
-imports:
-   /* nothing */                { []     }
-  | imports IMPORT ID SEMI      { $3 :: $1 }
-
-defines:
-   /* nothing */                { []     }
-  | defines DEFINE typ ID expr SEMI { ($3, $4, $5) :: $1 }
-
-/*
-main:
-  DEF MAIN LPAREN RPAREN LBRACE stmt_list RBRACE
-    { List.rev $6 }
-*/
 fdecls:
    /* nothing */  { []       }
  | fdecls fdecl   { $2 :: $1 }
-
-
-/*decls:
-    nothing { ([], [])               }
- | decls vdecl { (($2 :: fst $1), snd $1) }
- | decls fdecl { (fst $1, ($2 :: snd $1)) } */
 
 fdecl:
    DEF typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
@@ -79,22 +59,11 @@ formal_list:
     typ ID                   { [($1,$2)] }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
-
 typ:
- /*   MATRIX LEQ typ GEQ { Matrix($3) } NEW - Might be wrong */ 
-   MATRIX LT typ GT { Matrix($3) } /*  NEW - Might be wrong */
+   MATRIX LT typ GT { Matrix($3) }
   |INT { Int   }
   | FLOAT { Float }
   | VOID  { Void } 
- 
-
-/* vdecl_list:
-    /* nothing    { [] } */ 
-/*  | vdecl_list vdecl { $2 :: $1 } */
-
-
-/*vdecl:
-   typ ID ASSIGN expr SEMI { $1 }*/
 
 stmt_list:
     /* nothing */  { [] }
@@ -116,8 +85,6 @@ stmt:
   | expr LBRACK expr COMMA expr RBRACK ASSIGN expr SEMI          
                                             { Update($1, $3, $5, $8) }
   | expr SEMI                               { Expr $1                }
-  | BREAK SEMI                              { Break                  }
-  | CONTINUE SEMI                           { Continue               }
   | RETURN expr_opt SEMI                    { Return $2              }
   | block_stmt                              { $1                     }
   | IF LPAREN expr RPAREN block_stmt %prec NOELSE 
@@ -138,10 +105,8 @@ expr_opt:
 
 expr:
     INTLIT           { IntLit($1)            }
-/*| STRLIT	         { StringLit($1)          }*/
   | FLIT	           { FLit($1)           }
   | matrix_lit       { MatrixLit($1)          } 
- /* | NONE             { None                   }*/
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
@@ -156,25 +121,18 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
-  | MINUS expr %prec NOT { Unop(Neg, $2)      }
+  | MINUS expr %prec NOT 
+                     { Unop(Neg, $2)          }
   | NOT expr         { Unop(Not, $2)          }
-  /*| SIZE expr        { Unop(Size, $2)         }*/
   | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | LPAREN expr RPAREN { $2                   }
-  | matrix_access    { $1      }
-/*
-matrix:
-  typ LBRACK INTLIT RBRACK LBRACK INTLIT RBRACK {   }
-
-matrix_primitives:
-  INTLIT  { Literal($1) }
-  | FLIT { Fliteral($1) }
-*/
+  | ID LPAREN args_opt RPAREN 
+                     { Call($1, $3)           }
+  | LPAREN expr RPAREN 
+                     { $2                     }
+  | matrix_access    { $1                     }
 
 matrix_access:
   expr LBRACK expr COMMA expr RBRACK { Access($1, $3, $5) }
-/* before this $3 and $5 were LITERAL, but parser said that terminal $3 had no argument */ 
 
 matrix_row: 
     expr                   { [$1] }
@@ -188,7 +146,7 @@ matrix_row_list:
 
 matrix_lit:   
 	LBRACK matrix_row_list RBRACK { $2 }
-/* [1, 2, 3; 4, 5, 6] list of rows */ 
+/* list of rows */ 
 
 args_opt:
     /* nothing */ { [] }

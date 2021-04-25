@@ -11,7 +11,7 @@ module StringMap = Map.Make(String)
 
    Check each global variable, then check each function *)
 
-  let check (imports, defines, functions) =
+  let check functions =
 
   (* Check binds - Verify a list of bindings has no void types or duplicate names *)
 
@@ -40,11 +40,10 @@ module StringMap = Map.Make(String)
       fname = name; 
       formals = [(ty, "x")];
       body = [] } map
-      (*locals = []; body = [] } map*)
-    in List.fold_left add_bind StringMap.empty [ (*("getRows", Matrix(Int), Int); ("getColumns", Matrix(Int), Int);*)
+    in List.fold_left add_bind StringMap.empty [ 
                                ("print", Int, Void);
 			                         ("printm", Matrix(Int), Void);
-                               ("printmf", Matrix(Float), Void); (* Not working *)
+                               ("printmf", Matrix(Float), Void);
 			                         ("printf", Float, Void)]
   in
 
@@ -78,7 +77,6 @@ module StringMap = Map.Make(String)
   let check_function func =
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
-    (* check_binds "local" func.locals; *)
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -86,25 +84,11 @@ module StringMap = Map.Make(String)
     let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet || (lvaluet==Float && rvaluet == Int) then lvaluet else raise (Failure err)
     in   
-    
-    (*
-    let check_type e t typ_list =
-      if not (List.mem t typ_list) then raise (Failure ("illegal type " ^ string_of_typ t ^ " of " ^ string_of_expr e))
-    in 
-    *)
 
     (* Build local symbol table of variables for this function *)
-     
-    (* HashTbl version of Symbols:
-    let symbols = Hashtbl.create 20 in
-
-    List.iter (fun (ty, name) -> Hashtbl.add symbols name ty)
-        (func.formals);
-      *)
     
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (func.formals)
-                  (*StringMap.empty (globals @ func.formals @ func.locals )*)
     in
 
     (* Return a variable from our local symbol table *)
@@ -112,14 +96,12 @@ module StringMap = Map.Make(String)
     let type_of_identifier s env =
       try StringMap.find s env
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
-      (* replace StringMap with StringHash to fix Not_found error*)
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr e env = match e with
         IntLit  l -> (Int, SLiteral l)
       | FLit l -> (Float, SFliteral l)
-      (*| StrLiteral l -> (Int, SStrLiteral l)*)
       | MatrixLit l -> 
         let find_inner_type l = match l with
             hd::tl -> let (t,e) = (expr hd env) in t
@@ -139,10 +121,9 @@ module StringMap = Map.Make(String)
               (ty, e) :: (matrix_expr tl)
           | _ -> []
         in
-        (Matrix(my_type), SMatrixLit(List.map matrix_expr l)) (*Need to fix*)
-      (*| BoolLit l  -> (Bool, SBoolLit l)*)
+        (Matrix(my_type), SMatrixLit(List.map matrix_expr l)) 
       | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s env, SId s) (*should be type of identifier*)
+      | Id s       -> (type_of_identifier s env, SId s)
       | Assign(var, e) -> 
           let lt = type_of_identifier var env
           and (rt, e') = expr e env in
@@ -153,8 +134,7 @@ module StringMap = Map.Make(String)
           let (t, e') = expr e env in
           let ty = match op with
             Neg when t = Int || t = Float -> t
-          | Not when t = Int -> Int (* should check whether 0 or 1 in code *)
-          (*| Size when t = Matrix(t,i,j) -> (Int, Int) How do we say any size/type *)
+          | Not when t = Int -> Int
           | _ -> raise (Failure ("illegal unary operator " ^ 
                                  string_of_uop op ^ string_of_typ t ^
                                  " in " ^ string_of_expr e))
@@ -201,22 +181,14 @@ module StringMap = Map.Make(String)
                             " arguments in " ^ "getRows"))
           else let head = List.hd args in
           let (et, e') = expr head env in
-          (*let typ = match et with
-                Matrix(Int) -> Int
-              | Matrix(Float) -> Float
-              | _ -> raise(Failure("illegal argument found in getRows/Columns"))
-          in *) (Int, SCall("getRows", [(et, e')]))
+          (Int, SCall("getRows", [(et, e')]))
       | Call("getColumns", args) -> 
           if List.length args != 1 then
             raise (Failure ("expecting " ^ string_of_int 1 ^ 
                             " arguments in " ^ "getColumns"))
           else let head = List.hd args in
           let (et, e') = expr head env in
-          (*let typ = match et with
-                Matrix(Int) -> Int
-              | Matrix(Float) -> Float
-              | _ -> raise(Failure("illegal argument found in getRows/Columns"))
-          in*) (Int, SCall("getColumns", [(et, e')]))
+          (Int, SCall("getColumns", [(et, e')]))
       | Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -246,14 +218,6 @@ module StringMap = Map.Make(String)
           in
           (m_type, SAccess(expr m env, expr r env, expr c env))
     in
-    
-    (*
-    let check_bool_expr e = 
-      let (t', e') = expr e in
-      let err = "expected one or two in " ^ string_of_sexpr (t', e')
-      in if e!=1 && e'!=0 then raise (Failure err) else (t', e') 
-    in
-    *)
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt stmt env = match stmt with
@@ -262,10 +226,6 @@ module StringMap = Map.Make(String)
       let (st1, e1) =  check_stmt b1 env in
       let (st2, e2) =  check_stmt b2 env in
       (SIf(expr p env, st1, st2), env)
-      (*| For(e1, e2, e3, l) ->
-	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)*)
-      (*| While(p, l) -> SWhile(expr p, List.map check_stmt l) *)
-      (*| If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)*)
       | While(p, s) -> 
       let (st, en) =  check_stmt s env in
       (SWhile(expr p env, st), env)
@@ -290,9 +250,7 @@ module StringMap = Map.Make(String)
             st :: check_stmt_list ss en2
             | []              -> []
           in let ssl = check_stmt_list sl env in
-          (SBlock(ssl), env) (*Something isn't working here*)
-      | Break -> (SBreak, env)
-      | Continue -> (SContinue, env)
+          (SBlock(ssl), env)
       | VarDecl(t, s, e) -> 
           let (ty, ex) = expr e env in
           let decl_type = check_assign t ty "Type not correct" in
@@ -302,10 +260,6 @@ module StringMap = Map.Make(String)
           let (c_t, _) = expr c env in
           if r_t != Int || c_t != Int 
             then raise(Failure ("index must be of type int"));
-          (*let (r_type, c_type) = match (r_t, c_t) with 
-                Int, Int -> Int, Int
-              | _ -> raise(Failure ("index must be of type int"))
-          in *)
           let (m_t, _) = expr m env in
           let m_type = match m_t with
               Matrix(Int) -> Int
@@ -317,31 +271,10 @@ module StringMap = Map.Make(String)
           ignore(check_assign m_type e_t "Matrix type and expression type do not match");
           (SUpdate(expr m env, expr r env, expr c env, expr e env), env)
 
-        (*let (t1, e) = expr e1 env in
-          let m_type = match t1 with
-            Matrix(Int) -> Int
-          | Matrix(Float) -> Float
-          | _ -> raise (
-            Failure ("illegal access of " ^
-                           string_of_typ t1))
-        in
-          let (t2, e) = expr e2 env in
-          let e2_type = match t2 with 
-            Int -> Int
-          | _ -> raise(Failure ("index must be of type int"))
-        in 
-          let (t3, e) = expr e3 env in
-          let e2_type = match t3 with 
-            Int -> Int
-          | _ -> raise(Failure ("index must be of type int"))
-        in
-        (m_type, SAccess(expr e1 env, expr e2 env, expr e3 env))*)
-
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
-      (*slocals  = func.locals;*)
       sbody = let (bl, env) = check_stmt (Block func.body) symbols in match bl with
 	SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))

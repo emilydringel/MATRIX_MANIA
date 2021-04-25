@@ -41,17 +41,11 @@ rule token = parse
 | "elif"     { ELIF }
 | "for"      { FOR }
 | "while"    { WHILE }
-| "continue" { CONTINUE }
-| "break"    { BREAK }
 | "return"   { RETURN }
 | "int"      { INT }
 | "float"    { FLOAT }
 | "matrix"   { MATRIX }
 | "void"     { VOID }
-(*| "size"     { SIZE }*)
-(* | "main"     { MAIN } *)
-| "import"   { IMPORT }
-| "define"   { DEFINE }
 | "def"      { DEF }
 | digits as lxm { INTLIT(int_of_string lxm) }
 | float as lxm { FLIT(lxm) }

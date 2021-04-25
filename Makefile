@@ -2,7 +2,7 @@ matrixmania.native: matrixmania.ml codegen.ml semant.ml parser.native scanner.na
 	ocamlbuild -use-ocamlfind -r matrixmania.native -pkgs llvm,llvm.analysis
 
 parser.native: parser.mly ast.ml scanner.mll
-	ocamlbuild parser.native
+	ocamlbuild -r parser.native
 
 scanner.native: scanner.mll
 	ocamlbuild -r scanner.native
