@@ -1,10 +1,10 @@
 /* operators on ints and floats */ 
 
 def void testintfloat(int a, float b){
-    print(a + b);
-    print(a - b);
-    print(a * b);
-    print(a / b);
+    printf(a + b);
+    printf(a - b);
+    printf(a * b);
+    printf(a / b);
     print(a == b);
     print(a == a);
     print(a != b);
