@@ -45,13 +45,23 @@ let translate (functions) =
 		List.fold_left global_var StringMap.empty globals in
 *)
   
-	(* functions to easily get number of rows/columns of stored matrix *)
-  let get_matrix_rows matrix builder = 
-	  L.build_load matrix "rows" builder
+	(* functions to easily get number of rows/columns of a matrix *)
+  let get_matrix_rows matrix builder = (* matrix has already gone through expr *)
+		let typ = L.string_of_lltype (L.type_of matrix) in
+		let ret = match typ with
+			"double*" -> let rows = L.build_load matrix "rows" builder 
+				in L.build_fptosi rows i32_t "rowsint" builder 
+			| _ -> L.build_load matrix "rows" builder
+		in ret
 	in
 	let get_matrix_cols matrix builder = 
-		let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1 |] "ptr" builder in 
-		L.build_load ptr "cols" builder
+		let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1|] "ptr" builder in
+		let typ = L.string_of_lltype (L.type_of ptr) in
+		let ret = match typ with
+			"double*" -> let cols = L.build_load ptr "cols" builder 
+				in L.build_fptosi cols i32_t "colsint" builder 
+			| _ -> L.build_load ptr "cols" builder
+		in ret
 	in
 
 	(* Declare external functions *)
@@ -195,15 +205,15 @@ let translate (functions) =
 					ignore(L.build_store e' (lookup s) builder); e'
 				| SAccess ((ty, _) as m, r, c) ->
 					(* get desired pointer location *)
-					let matrix = expr builder m in
-					let row_idx = expr builder r in
-					let col_idx = expr builder c in 
+					let matrix = expr builder m 
+					and row_idx = expr builder r
+					and col_idx = expr builder c in 
 					let cols = get_matrix_cols matrix builder in
 					(* row = row_idx * cols *)
 					let row = L.build_mul row_idx cols "row" builder in 
 					(* row_col = (row_idx * cols) + col_idx *)
-					let row_col = L.build_add row col_idx "row_col" builder in 
-					let offset = L.const_int i32_t 2 in 
+					let row_col = L.build_add row col_idx "row_col" builder 
+					and offset = L.const_int i32_t 2 in 
 					(* idx = 2 + (row_idx * cols) + col_idx *)
 					let idx = L.build_add offset row_col "idx" builder in
 					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
@@ -227,9 +237,28 @@ let translate (functions) =
 					| A.And | A.Or ->
 							raise (Failure "internal error: semant should have rejected and/or on float")
 					) m1' m2' builder
-				| SBinop ((A.Float, _) as e1, op, e2) -> 
-					let e1' = expr builder e1
-					and e2' = expr builder e2 in
+				| SBinop ((t1, e1), op, (t2, e2)) when t1 == A.Float ->
+					let e1' = expr builder (t1, e1)
+					and e2' = expr builder (t2, e2) in
+					let e2' = if t2 == A.Float then e2' else (L.build_uitofp e2' float_t "float_e2" builder) in
+					(match op with 
+						A.Add     -> L.build_fadd
+					| A.Sub     -> L.build_fsub
+					| A.Mult    -> L.build_fmul
+					| A.Div     -> L.build_fdiv 
+					| A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+					| A.Neq     -> L.build_fcmp L.Fcmp.One
+					| A.Less    -> L.build_fcmp L.Fcmp.Olt
+					| A.Leq     -> L.build_fcmp L.Fcmp.Ole
+					| A.Greater -> L.build_fcmp L.Fcmp.Ogt
+					| A.Geq     -> L.build_fcmp L.Fcmp.Oge
+					| A.And | A.Or ->
+							raise (Failure "internal error: semant should have rejected and/or on float")
+					) e1' e2' "tmp" builder
+				| SBinop ((t1, e1), op, (t2, e2)) when t2 == A.Float -> 
+					let e1' = expr builder (t1, e1)
+					and e2' = expr builder (t2, e2) in
+					let e1' = if t1 == A.Float then e1' else (L.build_sitofp e1' float_t "float_e1" builder) in
 					(match op with 
 						A.Add     -> L.build_fadd
 					| A.Sub     -> L.build_fsub
@@ -245,7 +274,6 @@ let translate (functions) =
 							raise (Failure "internal error: semant should have rejected and/or on float")
 					) e1' e2' "tmp" builder
 				| SBinop (e1, op, e2) -> 
-					(*print_int(if (L.is_null (expr builder predicate)) then 0 else 1);*)
 					let e1' = expr builder e1
 					and e2' = expr builder e2 in
 					(match op with
@@ -280,23 +308,10 @@ let translate (functions) =
 					L.build_call printmf_func [| (expr builder e)|] "printmf" builder
 				| SCall ("getRows", [e]) ->
 					let matrix = expr builder e in
-					(*let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 0; L.const_int i32_t 0|] "ptr" builder in*)
-					let typ = L.string_of_lltype (L.type_of matrix) in
-					let ret = match typ with
-						"double*" -> let rows = L.build_load matrix "rows" builder 
-							in L.build_fptosi rows i32_t "rowsint" builder 
-						| _ -> L.build_load matrix "rows" builder
-					in ret
+					get_matrix_rows matrix builder
 				| SCall ("getColumns", [e]) ->
 					let matrix = expr builder e in
-					(*let value = L.build_load matrix "m" builder in*)
-					let ptr = L.build_in_bounds_gep matrix [| L.const_int i32_t 1|] "ptr" builder in
-					let typ = L.string_of_lltype (L.type_of ptr) in
-					let ret = match typ with
-						"double*" -> let cols = L.build_load ptr "cols" builder 
-							in L.build_fptosi cols i32_t "colsint" builder 
-						| _ -> L.build_load ptr "cols" builder
-					in ret
+					get_matrix_cols matrix builder
 	      | SCall (f, args) -> 
 	    	let (fdef, fdecl) = StringMap.find f function_decls in
 		 	let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -370,21 +385,29 @@ let translate (functions) =
 							ignore(L.build_store e' (lookup id) builder); builder	
 				| SUpdate (m, r, c, e) -> 
 						(* get desired pointer location *)
-						let matrix = expr builder m in
-						let row_idx = expr builder r in
-						let col_idx = expr builder c in 
+						let matrix = expr builder m
+						and row_idx = expr builder r
+						and col_idx = expr builder c in 
 						let cols = get_matrix_cols matrix builder in
 						(* row = row_idx * cols *)
 						let row = L.build_mul row_idx cols "row" builder in 
 						(* row_col = (row_idx * cols) + col_idx *)
-						let row_col = L.build_add row col_idx "row_col" builder in 
-						let offset = L.const_int i32_t 2 in 
+						let row_col = L.build_add row col_idx "row_col" builder 
+						and offset = L.const_int i32_t 2 in 
 						(* idx = 2 + (row_idx * cols) + col_idx *)
 						let idx = L.build_add offset row_col "idx" builder in
 						let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
 						(* update value at that location *)
 						let e' = expr builder e in
-						ignore(L.build_store e' ptr builder); builder
+						let m_typ = L.string_of_lltype (L.type_of matrix) 
+						and e_typ = L.string_of_lltype (L.type_of e') in 
+						let e_fixed = match (m_typ, e_typ) with
+						    "double*", "i32" -> L.build_uitofp e' float_t "float_e" builder
+							| "i32*", "double" -> L.build_fptosi e' i32_t "int_e" builder 
+							| _ -> e'
+						in
+
+						ignore(L.build_store e_fixed ptr builder); builder
 	    in
 
 	    (* Build the code for each statement in the function *)

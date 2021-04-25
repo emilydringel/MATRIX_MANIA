@@ -170,7 +170,6 @@ module StringMap = Map.Make(String)
             Add | Sub | Div | Mod | Mult when same  && t1 = Int   -> Int
           | Add | Sub | Div | Mod | Mult when same  && t1 = Float -> Float
           | Add | Sub | Div | Mod | Mult when castOk -> Float 
-          | Add | Sub | Div | Mod | Mult when castOk -> Float
           | Add when t1 = Matrix(Int) && t2 = Matrix(Int) -> Matrix(Int)
           | Add when t1 = Matrix(Int) && t2 = Matrix(Float) -> Matrix(Float)
           | Add when t2 = Matrix(Int) && t1 = Matrix(Float) -> Matrix(Float)
