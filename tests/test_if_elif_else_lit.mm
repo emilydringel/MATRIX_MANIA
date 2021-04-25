@@ -1,12 +1,12 @@
 def int main(){
-    if(0){
+    if(0 == 1){
 		print(0);
 	}   
-	elif(1){
+	elif(1 == 1){
 		print(1);
 	}     
 	else {
-		print(3);
+		print(2);
 	}
 }
 
