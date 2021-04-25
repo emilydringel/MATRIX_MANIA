@@ -20,5 +20,4 @@ def int main(){
     float d = 5.5;
 
     testintfloat(c, d);
-    testintfloat(d, d); */ Fail: expecting int as first argument */
 }
