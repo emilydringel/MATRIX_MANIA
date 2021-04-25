@@ -267,9 +267,6 @@ module StringMap = Map.Make(String)
 	      SFor(expr e1, expr e2, expr e3, List.map check_stmt l)*)
       (*| While(p, l) -> SWhile(expr p, List.map check_stmt l) *)
       (*| If(p, b1, b2) -> SIf(expr p, check_stmt b1, check_stmt b2)*)
-      | For(e1, e2, e3, st) -> 
-      let (s, en) =  check_stmt st env in
-      (SFor(expr e1 env, expr e2 env, expr e3 env, s), env)
       | While(p, s) -> 
       let (st, en) =  check_stmt s env in
       (SWhile(expr p env, st), env)

@@ -125,8 +125,11 @@ stmt:
   | IF LPAREN expr RPAREN block_stmt ELSE block_stmt    
                                             { If($3, $5, $7)         } 
   | IF LPAREN expr RPAREN block_stmt elifs  { If($3, $5, $6)         } 
-  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
-                                            { For($3, $5, $7, $9)    }
+  | FOR LPAREN SEMI expr SEMI expr_opt RPAREN stmt
+                                      { Block([While($4, Block([$8; (Expr $6)]))]) }
+  | FOR LPAREN stmt expr SEMI expr_opt RPAREN stmt
+                                      { Block([$3; While($4, Block([$8; (Expr $6)]))]) }
+                   
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)          }
 
 expr_opt:

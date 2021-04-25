@@ -32,3 +32,6 @@ clean:
 	rm -f parser.ml parser.mli parser.output
 	rm -rf _build
 	rm -f c_functions/*.o *.o
+	rm -f *.exe
+	rm -f *.s
+	rm -f *.output

@@ -363,10 +363,6 @@ let translate (functions) =
 						let merge_bb = L.append_block context "merge" the_function in
 						ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
 						L.builder_at_end context merge_bb
-					
-				(* Implement for loops as while loops *)
-				| SFor (e1, e2, e3, body) -> stmt builder
-					( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
 				| SVarDecl (t, id, e) -> 
 							let local_var = L.build_alloca (ltype_of_typ t) id builder in 
 							Hashtbl.add var_hash id local_var;
