@@ -1,5 +1,5 @@
 def int main(){
-    if(0) {
+    if(0 == 1) {
         print(1);
         print(2);
     } 
