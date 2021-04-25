@@ -1,1 +1,1 @@
-Fatal error: exception Failure("Illegal argument, type declaraction expected")
+Fatal error: exception Parsing.Parse_error
