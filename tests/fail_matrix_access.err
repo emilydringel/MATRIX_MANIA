@@ -1,1 +1,1 @@
-Fatal error: exception Failure("Out of bounds")
+Fatal error: exception Failure("illegal argument found int expected matrix of type: int in m 3 3")

@@ -1,2 +1,2 @@
-Fatal error: exception Failure("printmf is for matrix of floats")
+Fatal error: exception Failure("illegal argument found matrix of type: int expected matrix of type: float in m")
 
