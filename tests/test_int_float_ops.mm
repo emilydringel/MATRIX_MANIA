@@ -1,6 +1,6 @@
 /* operators on ints and floats */ 
 
-def void testintflot(int a, float b){
+def void testintfloat(int a, float b){
     print(a + b);
     print(a - b);
     print(a * b);
