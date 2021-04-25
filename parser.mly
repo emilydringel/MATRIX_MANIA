@@ -23,14 +23,15 @@
 %nonassoc NOELSE
 %nonassoc NOELIF
 %nonassoc ELSE 
-%nonassoc BREAK CONTINUE RETURN
+%nonassoc RETURN
 %right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
-%left LT GT LEQ GEQ LBRACK RBRACK
+%left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+%left LBRACK RBRACK
 %right NOT SIZE
 
 %%
@@ -108,6 +109,8 @@ expr:
   | FLIT	           { FLit($1)           }
   | matrix_lit       { MatrixLit($1)          } 
   | ID               { Id($1)                 }
+  | expr LBRACK expr COMMA expr RBRACK
+                     { Access($1, $3, $5)     }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
@@ -129,10 +132,6 @@ expr:
                      { Call($1, $3)           }
   | LPAREN expr RPAREN 
                      { $2                     }
-  | matrix_access    { $1                     }
-
-matrix_access:
-  expr LBRACK expr COMMA expr RBRACK { Access($1, $3, $5) }
 
 matrix_row: 
     expr                   { [$1] }
