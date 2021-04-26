@@ -112,37 +112,6 @@ Check() {
     fi
 }
 
-CheckFail() {
-    error=0
-    basename=`echo $1 | sed 's/.*\\///
-                             s/.mm//'`
-    reffile=`echo $1 | sed 's/.mm$//'`
-    basedir="`echo $1 | sed 's/\/[^\/]*$//'`/."
-
-    echo -n "$basename..."
-
-    echo 1>&2
-    echo "###### Testing $basename" 1>&2
-
-    generatedfiles=""
-
-    generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
-    RunFail "$MICROC" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
-    Compare ${basename}.err ${reffile}.err ${basename}.diff
-
-    # Report the status and clean up the generated files
-
-    if [ $error -eq 0 ] ; then
-	if [ $keep -eq 0 ] ; then
-	    rm -f $generatedfiles
-	fi
-	echo "OK"
-	echo "###### SUCCESS" 1>&2
-    else
-	echo "###### FAILED" 1>&2
-	globalerror=$error
-    fi
-}
 
 while getopts kdpsh c; do
     case $c in

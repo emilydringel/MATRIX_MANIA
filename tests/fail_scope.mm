@@ -4,7 +4,7 @@ def float add(float x){
     while(y>1.0){
         float z = x + y; 
     }
-    return z; /* Fail: doesn't reach blcok */ 
+    return z; 
 }
 
 def int main(){
