@@ -123,18 +123,40 @@ def int inverse(matrix<float> A, matrix<float> inverse) {
     return 1;
 }
 
+def void transpose(matrix<int> original, matrix<int> result){
+    int sizeOfR1 = getRows(original);
+    int sizeOfC1= getColumns(original);
+
+    for(int i = 0; i < sizeOfC1; i=i+1){
+	    for(int j = 0; j < sizeOfR1; j=j+1){
+            result[i,j] = original[j,i];
+	    }
+    }
+}
+
 def int main() {
-    matrix<float> A = [1., 2., 3., 4.;
-                     2., 5., 6., 7.;
-                     3., 6., 8., 9.;
-                     4., 7., 9., 10.];
-    matrix<float> A_inv = 
+    matrix<float> A = [1., 2., 3.;
+                       4., 5., 6.;
+                       7., 8., 9.;
+                       10., 11., 12.];
+    matrix<float> A_T = 
+                    [0., 0., 0., 0.;
+                     0., 0., 0., 0.;
+                     0., 0., 0., 0.];
+    transpose(A, A_T);
+    matrix<float> A_TA = A_T * A;
+    matrix<float> A_TA_inv = 
                     [0., 0., 0., 0.;
                      0., 0., 0., 0.;
                      0., 0., 0., 0.;
                      0., 0., 0., 0.];
-    if (inverse(A, A_inv) == 0) {
+    if (inverse(A_TA, A_TA_inv) == 0) {
         print(-1);
     }
-    printmf(A_inv);
+    matrix<float> A_TA_invA_T = A_TA_inv * A_T;
+    
+    matrix<float> b = [1; 2; 4; 16];
+    matrix<float> result = A_TA_invA_T * b;
+    printmf(b);
+    /* expected output: [-3.5; -1; -1]*/
 }
