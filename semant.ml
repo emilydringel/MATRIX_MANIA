@@ -15,7 +15,6 @@ module StringMap = Map.Make(String)
 
   (* Check binds - Verify a list of bindings has no void types or duplicate names *)
 
-  (**** Check global variables ****)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
 	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
@@ -27,8 +26,6 @@ module StringMap = Map.Make(String)
       | _ :: t -> dups t
     in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
   in
-
-  (*check_binds "global" globals;*)
 
   (**** Check functions ****)
 

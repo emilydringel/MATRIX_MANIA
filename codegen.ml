@@ -20,28 +20,9 @@ let translate (functions) =
 		| A.Float -> float_t 
 		| A.Void  -> void_t
 		| A.Matrix(t) -> L.pointer_type (ltype_of_typ t)
-		(*| A.Matrix(t, r, c) ->
-			let rows = match r with IntLit(s) -> s 
-															| _ -> raise(Failure"Integer required for matrix dimension") in
-			let cols = match c with IntLit(s) -> s 
-															| _ -> raise(Failure"Integer required for matrix dimension") in
-			(match t with
-					A.Int      -> array_t (array_t i32_t cols) rows
-					| A.Float  -> array_t (array_t float_t cols) rows
-					| _ -> raise(Failure"Invalid datatype for matrix"))*)
 
 	in
 
-	(* Declare and store global variables *)
-(*
-	let global_vars : L.llvalue StringMap.t =
-		let global_var m (t, n) = 
-			let init = match t with
-			A.Float -> L.const_float (ltype_of_typ t) 0.0
-			| _ -> L.const_int (ltype_of_typ t) 0
-			in StringMap.add n (L.define_global n init the_module) m in
-		List.fold_left global_var StringMap.empty globals in
-*)
   
 	(* functions to easily get number of rows/columns of a matrix *)
   let get_matrix_rows matrix builder = (* matrix has already gone through expr *)
@@ -61,6 +42,7 @@ let translate (functions) =
 			| _ -> L.build_load ptr "cols" builder
 		in ret
 	in
+	
 	(* Declare external functions *)
 
 	let printf_t : L.lltype =
@@ -77,13 +59,7 @@ let translate (functions) =
 			L.function_type i32_t [| L.pointer_type float_t |] in
 	let printmf_func : L.llvalue =
 			L.declare_function "printmf" printmf_t the_module in
-	(* commented out because not yet implemented to remove warnings*)
-	(*let addm_t : L.lltype = 
-		L.function_type (i32_t) [| L.pointer_type i32_t ; L.pointer_type i32_t|] in
-	let addm_func : L.llvalue =
-			L.declare_function "addm" printm_t the_module in*)
 	
-
 	(* Define each function (arguments and return type) 
 	so we can call it even before we've created its body *)
 
@@ -153,8 +129,6 @@ let translate (functions) =
 			in let ftype = L.function_type (ltype_of_typ fdecl.styp) formal_types in
 			StringMap.add name (L.define_function name ftype the_module, fdecl) m in
 		List.fold_left function_decl StringMap.empty functions in
-
-
 
 	(* Fill in the body of the given function *)
 	
@@ -296,7 +270,6 @@ let translate (functions) =
 					let ret = match op with 
 						A.Add     -> 
 							L.build_call addm_func [| m1';m2' |] "addm" builder
-						(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
 					| A.Sub     -> L.build_call subm_func [| m1';m2' |] "subm" builder
 					| A.Mult    -> 
 						let (t', _) = m2 in
@@ -336,7 +309,6 @@ let translate (functions) =
 					let ret = match op with 
 						A.Add     -> 
 							L.build_call addmf_func [| m1';m2' |] "addmf" builder
-						(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
 					| A.Sub     -> L.build_call submf_func [| m1';m2' |] "submf" builder
 					| A.Mult    -> 
 						let (t', _) = m2 in
