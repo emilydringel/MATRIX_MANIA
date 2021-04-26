@@ -290,7 +290,7 @@ let translate (functions) =
 					let idx = L.build_add offset row_col "idx" builder in
 					let ptr = L.build_in_bounds_gep matrix [| idx |] "ptr" builder in
 					L.build_load ptr "element" builder
-				| SBinop ((A.Matrix(Int), _) as m1, op, m2) -> 
+				| SBinop ((A.Matrix(A.Int), _) as m1, op, m2) -> 
 					let m1' = expr builder m1
 					and m2' = expr builder m2 in
 					let ret = match op with 
@@ -314,7 +314,7 @@ let translate (functions) =
 													L.build_xor eq (L.const_int i32_t 1) "and" builder
 					| _        	-> raise(Failure "internal error: semant should have rejected")
 					in ret
-				| SBinop ((_ as m1), (_ as op), ((A.Matrix(Int),_) as m2)) -> 
+				| SBinop ((_ as m1), (_ as op), ((A.Matrix(A.Int),_) as m2)) -> 
 						let m1' = expr builder m1
 						and m2' = expr builder m2 in
 						let ret = match op with 
@@ -330,7 +330,7 @@ let translate (functions) =
 							in ret_val
 						| _        	-> raise(Failure "internal error: semant should have rejected")
 						in ret
-				| SBinop ((A.Matrix(Float), _) as m1, op, m2) -> 
+				| SBinop ((A.Matrix(A.Float), _) as m1, op, m2) -> 
 					let m1' = expr builder m1
 					and m2' = expr builder m2 in
 					let ret = match op with 
@@ -353,7 +353,7 @@ let translate (functions) =
 													L.build_xor eq (L.const_int i32_t 1) "and" builder
 					| _        	-> raise(Failure "internal error: semant should have rejected")
 					in ret
-				| SBinop ((_ as m1), (_ as op), ((A.Matrix(Float),_) as m2)) -> 
+				| SBinop ((_ as m1), (_ as op), ((A.Matrix(A.Float),_) as m2)) -> 
 						let m1' = expr builder m1
 						and m2' = expr builder m2 in
 						let ret = match op with 
