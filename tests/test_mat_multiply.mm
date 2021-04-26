@@ -1,39 +1,30 @@
-def matrix<int> multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
+def void multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
 
-  int sizeOfR1 = getRows(x);
-  int sizeOfC1 = getColumns(x);
-  
-  int i = 0;
-  int j = 0;
+  int x_rows = getRows(x);
+  int y_cols = getColumns(y);
+  int y_rows = getRows(y);
 
-  for(i = 0; i < sizeOfR1; i=i+1){
-    for(j = 0; j < sizeOfC1; j=j+1){
-      empty[i,j] = x[i,j]*y[i,j];
+  for(int i = 0; i < x_rows; i=i+1){
+    for(int j = 0; j < y_cols; j=j+1){
+      for(int k = 0; k < y_rows; k =k+1) {
+        empty[i,j] = empty[i,j] + x[i,k] * y[k,j];
+      }
     }
   }
-  /* return empty; */
-  /*  matrix<int> result = matrix<int> empty; */
 }
 
 def int main(){
 
-  matrix<int> empty3 = [0,0];
-  multiply([1,1],[2,2],empty3);
+  matrix<int> m = [1, 0, 0;
+                   0, 2, 0;
+                   0, 0, 3];
+  matrix<int> n = [1, 2, 3;
+                   5, 6, 7;
+                   8, 9, 10];
+  matrix<int> empty3 = [0, 0, 0;
+                        0, 0, 0;
+                        0, 0, 0];
+  multiply(m, n, empty3);
   printm(empty3);
-  
-  /*
-  matrix<int> m = [1,4];
-  matrix<int> n = [2,3];
-  matrix<int> empty = [0,0];
-  matrix<int> empty2 = [0,0];
-
-  matrix<int> multiplied = multiply(m,n, empty);
-  matrix<int> multiplied2 = multiply([6,8],[9,10], empty2);
-
-
-  printm(m);
-  printm(n);
-  printm(multiplied);
-  printm(multiplied2);
-  */
+  printm(m*n);
 }
