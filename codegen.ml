@@ -208,8 +208,16 @@ let translate (functions) =
 					in make_matrix
  				| SId s       -> 
 					L.build_load (lookup s) s builder
-				| SAssign (s, e) -> let e' = expr builder e in
-					ignore(L.build_store e' (lookup s) builder); e'
+				| SAssign (s, e) -> 
+					let e' = expr builder e
+					and s' = lookup s in
+					let e_type = L.string_of_lltype (L.type_of e')
+					and s_type = L.string_of_lltype (L.type_of s') in
+					let e_fixed = match (s_type, e_type) with
+						"double", "i32" -> L.build_sitofp e' float_t "e_float" builder 
+						| _ -> e'
+				in
+					ignore(L.build_store e_fixed s' builder); e'
 				| SAccess ((ty, _) as m, r, c) ->
 					(* get desired pointer location *)
 					let matrix = expr builder m 
@@ -379,7 +387,13 @@ let translate (functions) =
 							let local_var = L.build_alloca (ltype_of_typ t) id builder in 
 							Hashtbl.add var_hash id local_var;
 							let e' = expr builder e in
-							ignore(L.build_store e' (lookup id) builder); builder	
+							let e_type = L.string_of_lltype (L.type_of e')
+							and s_type = L.string_of_lltype (ltype_of_typ t) in
+							let e_fixed = match (s_type, e_type) with
+								"double", "i32" -> L.build_sitofp e' float_t "e_float" builder 
+								| _ -> e'
+						in
+							ignore(L.build_store e_fixed (lookup id) builder); builder	
 				| SUpdate (m, r, c, e) -> 
 						(* get desired pointer location *)
 						let matrix = expr builder m
