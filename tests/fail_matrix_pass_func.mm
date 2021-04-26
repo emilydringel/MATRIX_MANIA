@@ -4,5 +4,5 @@ def void pass(matrix<int> a){
 }
 def int main(){
         matrix<int> a = [1,2];
-        pass(a);
+        pass(b); /* Fail: undeclared identifier b */ 
 }
