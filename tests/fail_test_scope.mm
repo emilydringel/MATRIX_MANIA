@@ -1,5 +1,4 @@
 /* Semant Check -- scoping */
-
 def float add(float x){
     float y = 5.0;
     while(0){
