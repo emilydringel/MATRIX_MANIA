@@ -1,30 +1,30 @@
 def void transpose(matrix<int> original, matrix<int> result){
-    int sizeOfR1 = getRows(original);
-    int sizeOfC1= getColumns(original);
+    /* using built-in functions getRows and getColumns */
+    int rows = getRows(original);
+    int cols = getColumns(original);
 
-    for(int i = 0; i < sizeOfC1; i=i+1){
-	    for(int j = 0; j < sizeOfR1; j=j+1){
-            result[i,j] = original[j,i];
+    for(int i = 0; i < cols; i=i+1){
+	    for(int j = 0; j < rows; j=j+1){
+            result[i, j] = original[j, i];
 	    }
     }
 }
 
 def int main(){
+    /* declare matrix */
+    matrix<int> A = [1, 2, 3;
+                     4, 5, 6];
+    printm(A);
 
-    matrix<int> m = [1,2,3;4,5,6];
-    printm(m);
-    
-    matrix<int> n = [0,0;0,0;0,0];
-    transpose(m,n);
-    printm(n); 
+    print(1111111111);
 
+    /* declare result matrix */
+    matrix<int> A_T = [0, 0; 
+                       0, 0;
+                       0, 0];
+    transpose(A, A_T);
 
-    matrix<int> m = [1,2,3,8,3,23,4,44; 11,9,31,2,13,33,0,17];
-    printm(m);
+    printm(A_T);
 
-    matrix<int> p = [0,0;0,0;0,0;0,0;0,0;0,0;0,0;0,0];
-    transpose(m,p);
-    printm(p); 
-
-
-} 
+    return 0;
+}

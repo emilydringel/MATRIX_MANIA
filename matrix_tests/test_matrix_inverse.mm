@@ -102,7 +102,7 @@ def int inverse(matrix<float> A, matrix<float> inverse) {
     int N = getRows(A);
     float det = determinant(A, N);
     if (det == 0) {
-        return 0;
+        return 1;
     }
   
     /* Find adjoint */
@@ -120,21 +120,28 @@ def int inverse(matrix<float> A, matrix<float> inverse) {
         }
     }
   
-    return 1;
+    return 0;
 }
 
 def int main() {
+    /* declare matrix */
     matrix<float> A = [1., 2., 3., 4.;
                      2., 5., 6., 7.;
                      3., 6., 8., 9.;
                      4., 7., 9., 10.];
-    matrix<float> A_inv = 
+
+    /* declare result matrix */
+   matrix<float> A_inv = 
                     [0., 0., 0., 0.;
                      0., 0., 0., 0.;
                      0., 0., 0., 0.;
-                     0., 0., 0., 0.];
-    if (inverse(A, A_inv) == 0) {
+                     0., 0., 0., 0.]; 
+
+    /* compute invers/check if inverse is valid */
+    if (inverse(A, A_inv) != 0) {
         print(-1);
     }
     printmf(A_inv);
+    print(1111111111);
+    printmf(A*A_inv);
 }
