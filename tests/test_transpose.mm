@@ -2,8 +2,8 @@ def void transpose(matrix<int> original, matrix<int> result){
     int sizeOfR1 = getRows(original);
     int sizeOfC1= getColumns(original);
 
-    for(int i = 0; i < sizeOfR1; i=i+1){
-	    for(int j = 0; j < sizeOfC1; j=j+1){
+    for(int i = 0; i < sizeOfC1; i=i+1){
+	    for(int j = 0; j < sizeOfR1; j=j+1){
             result[i,j] = original[j,i];
 	    }
     }
@@ -11,14 +11,20 @@ def void transpose(matrix<int> original, matrix<int> result){
 
 def int main(){
 
-    matrix<int> m = [1,2,3; 4,5,6];
-    matrix<int> n = [0,0;0,0;0,0];
-    matrix<int> tranposed = transpose(m,n);
-
-
+    matrix<int> m = [1,2,3;4,5,6];
     printm(m);
-    printm(transposed);
+    
+    matrix<int> n = [0,0;0,0;0,0];
+    transpose(m,n);
+    printm(n); 
 
-    /*printm(transpose([7,8,9,10; 11,12,13,14]);*/
-    printm(transpose([7,8,9,10; 11,12,13,14],[0,0;0,0;0,0;0,0]);
+
+    matrix<int> m = [1,2,3,8,3,23,4,44; 11,9,31,2,13,33,0,17];
+    printm(m);
+
+    matrix<int> p = [0,0;0,0;0,0;0,0;0,0;0,0;0,0;0,0];
+    transpose(m,p);
+    printm(p); 
+
+
 } 
