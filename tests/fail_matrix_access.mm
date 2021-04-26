@@ -1,4 +1,4 @@
 def int main(){
 	matrix<int> m = [1,4];
-	printm([3,3]));
+	printm(m[3,3]);
 }

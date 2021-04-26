@@ -4,9 +4,13 @@ def int main(){
  int z = 2;
  if(x) {
      print(x);
- } else if (y) {
+ } 
+ else if () {
      print(y);
- } else {
+ } 
+ else {
      print(z);
  }
-/* Fail: Missing closing brace */
+ 
+ }
+
