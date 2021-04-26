@@ -147,26 +147,22 @@ module StringMap = Map.Make(String)
           let castOk = ((t1 = Float && t2 = Int) || (t1 = Int && t2 = Float)) in
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
-            Add | Sub | Div | Mod | Mult when same  && t1 = Int   -> Int
+            Add | Sub | Div | Mod | Mult when same && t1 = Int   -> Int
           | Add | Sub | Div | Mult when same  && t1 = Float -> Float
           | Add | Sub | Div | Mult when castOk -> Float 
-          | Add when t1 = Matrix(Int) && t2 = Matrix(Int) -> Matrix(Int)
-          | Add when t1 = Matrix(Int) && t2 = Matrix(Float) -> Matrix(Float)
-          | Add when t2 = Matrix(Int) && t1 = Matrix(Float) -> Matrix(Float)
-          | Add when t1 = Matrix(Float) && t2 = Matrix(Float) -> Matrix(Float)
+          | Add | Sub when t1 = Matrix(Int) && t2 = Matrix(Int) -> Matrix(Int)
+          | Add | Sub when t1 = Matrix(Float) && t2 = Matrix(Float) -> Matrix(Float)
           | Mult when t1 = Matrix(Int) && t2 = Matrix(Int) -> Matrix(Int)
-          | Mult when t1 = Matrix(Int) && t2 = Matrix(Float) -> Matrix(Float)
-          | Mult when t2 = Matrix(Int) && t1 = Matrix(Float) -> Matrix(Float)
           | Mult when t1 = Matrix(Float) && t2 = Matrix(Float) -> Matrix(Float)
           | Mult when t1 = Matrix(Int) && t2 = Int -> Matrix(Int)
           | Mult when t2 = Matrix(Int) && t1 = Int -> Matrix(Int)
-          | Mult when t1 = Matrix(Int) && t2 = Float-> Matrix(Float)
-          | Mult when t2 = Matrix(Int) && t1 = Float -> Matrix(Float)
+          | Mult when t1 = Matrix(Int) && t2 = Float-> Matrix(Int)
+          | Mult when t2 = Matrix(Int) && t1 = Float -> Matrix(Int)
           | Mult when t1 = Matrix(Float) && (t2 = Float || t2 = Int) -> Matrix(Float)
-          | Mult when t2 = Matrix(Float) && (t2 = Float || t2 = Int) -> Matrix(Float)
+          | Mult when t2 = Matrix(Float) && (t1 = Float || t1 = Int) -> Matrix(Float)
           | Equal | Neq when same               -> Int
           | Equal | Neq when castOk             -> Int
-          | Equal | Neq when (t1 = Matrix(Int) || t1 = Matrix(Float)) && (t2 = Matrix(Int) || t2 = Matrix(Float)) -> Int
+          | Equal | Neq when (t1 = Matrix(Int) && t2 = Matrix(Int)) || (t1 = Matrix(Float) && t2 = Matrix(Float)) -> Int
           | Less | Leq | Greater | Geq
                      when (same || castOk) && (t1 = Int || t1 = Float) -> Int
           | And | Or when same && t1 = Int -> Int
