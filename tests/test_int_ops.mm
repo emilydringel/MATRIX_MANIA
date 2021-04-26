@@ -13,6 +13,7 @@ def void testint(int a, int b){
     print(a >= b);
     print(a < b);
     print(a <= b);
+    print(a%b);
 }
 def int main(){
 

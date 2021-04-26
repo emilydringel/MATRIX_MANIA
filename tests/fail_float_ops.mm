@@ -11,11 +11,12 @@ def void testfloat(float a, float b){
     print(a >= b);
     print(a < b);
     print(a <= b);
+    print(a%b);
 }
 def int main(){
 
     float c = 93.6;
-    int d = 7.26;
+    float d = 7.26;
 
     testfloat(c, d);
 

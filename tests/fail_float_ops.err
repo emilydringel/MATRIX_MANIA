@@ -1,1 +1,1 @@
-Fatal error: exception Failure("Type not correct")
+Fatal error: exception Failure("illegal binary operator float % float")
