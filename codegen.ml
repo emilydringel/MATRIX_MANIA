@@ -61,7 +61,6 @@ let translate (functions) =
 			| _ -> L.build_load ptr "cols" builder
 		in ret
 	in
-
 	(* Declare external functions *)
 
 	let printf_t : L.lltype =
@@ -307,7 +306,8 @@ let translate (functions) =
 									L.build_call scalarm_func [| scalar;m1' |] "scalarm" builder
 								| A.Float ->
 									L.build_call scalarm_func [| m2';m1' |] "scalarm" builder
-								| _ -> L.build_call multiplication_func [| m2';m1' |] "matm" builder
+								| _ -> 
+									L.build_call multiplication_func [| m1';m2' |] "matm" builder
 							in ret_val'
 					| A.Equal   -> L.build_call equal_func [| m1';m2' |] "equal" builder
 					| A.Neq     -> let eq = L.build_call equal_func [| m1';m2' |] "equal" builder in
@@ -318,10 +318,6 @@ let translate (functions) =
 						let m1' = expr builder m1
 						and m2' = expr builder m2 in
 						let ret = match op with 
-							A.Add     -> 
-								L.build_call addm_func [| m1';m2' |] "addm" builder
-							(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
-						| A.Sub     -> L.build_call subm_func [| m1';m2' |] "subm" builder
 						| A.Mult    -> 
 							let (t, _) = m1 in
 							let ret_val = match t with 
@@ -332,9 +328,6 @@ let translate (functions) =
 									L.build_call scalarm_func [| m1';m2' |] "scalarm" builder
 								| _ -> raise(Failure "should be caught elsewhere")
 							in ret_val
-						| A.Equal   -> L.build_call equal_func [| m1';m2' |] "equal" builder
-						| A.Neq     -> let eq = L.build_call equal_func [| m1';m2' |] "equal" builder in
-														L.build_xor eq (L.const_int i32_t 1) "and" builder
 						| _        	-> raise(Failure "internal error: semant should have rejected")
 						in ret
 				| SBinop ((A.Matrix(Float), _) as m1, op, m2) -> 
@@ -353,7 +346,7 @@ let translate (functions) =
 									L.build_call scalarmf_func [| scalar;m1' |] "scalarmf" builder
 								| A.Float ->
 									L.build_call scalarmf_func [| m2';m1' |] "scalarmf" builder
-								| _ -> L.build_call multiplicationf_func [| m2';m1' |] "matmf" builder
+								| _ -> L.build_call multiplicationf_func [| m1';m2' |] "matmf" builder
 							in ret_val'
 					| A.Equal   -> L.build_call equalf_func [| m1';m2' |] "equalf" builder
 					| A.Neq     -> let eq = L.build_call equalf_func [| m1';m2' |] "equalf" builder in
@@ -364,9 +357,6 @@ let translate (functions) =
 						let m1' = expr builder m1
 						and m2' = expr builder m2 in
 						let ret = match op with 
-							A.Add     -> L.build_call addm_func [| m1';m2' |] "addmf" builder
-							(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
-						| A.Sub     ->  L.build_call submf_func [| m1';m2' |] "submf" builder
 						| A.Mult    -> 
 							let (t, _) = m1 in
 							let ret_val = match t with 
@@ -377,9 +367,6 @@ let translate (functions) =
 									L.build_call scalarmf_func [| m1';m2' |] "scalarm" builder
 								| _ -> raise(Failure "should be caught elsewhere")
 							in ret_val
-						| A.Equal   -> L.build_call equalf_func [| m1';m2' |] "equalf" builder
-						| A.Neq     -> let eq = L.build_call equalf_func [| m1';m2' |] "equalf" builder in
-														L.build_xor eq (L.const_int i32_t 1) "and" builder
 						| _        	-> raise(Failure "internal error: semant should have rejected")
 						in ret
 				| SBinop ((t1, e1), op, (t2, e2)) when t1 == A.Float ->

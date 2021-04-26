@@ -57,6 +57,10 @@ void printmf(double* element_one) /* prints the matrix<int> */
 
 int* addm(int* m1, int* m2) 
 {
+    if(m1[0]!=m2[0] || m1[1]!=m2[1]){
+        printf("RUNTIME ERROR: matrices being added do not have the same dimensions.\n");
+        exit(1);
+    }
     int rows = m1[0];
     int cols = m1[1];
     int size = 2 + rows * cols;
@@ -71,6 +75,10 @@ int* addm(int* m1, int* m2)
 
 double* addmf(double* m1, double* m2) 
 {
+    if(m1[0]!=m2[0] || m1[1]!=m2[1]){
+        printf("RUNTIME ERROR: matrices being added do not have the same dimensions.\n");
+        exit(1);
+    }
     int rows = (int) m1[0];
     int cols = (int) m1[1];
     int size = 2 + rows * cols;
@@ -85,6 +93,10 @@ double* addmf(double* m1, double* m2)
 
 int* subm(int* m1, int* m2) 
 {
+    if(m1[0]!=m2[0] || m1[1]!=m2[1]){
+        printf("RUNTIME ERROR: matrices being subtracted do not have the same dimensions.\n");
+        exit(1);
+    }
     int rows = m1[0];
     int cols = m1[1];
     int size = 2 + rows * cols;
@@ -99,6 +111,10 @@ int* subm(int* m1, int* m2)
 
 double* submf(double* m1, double* m2) 
 {
+    if(m1[0]!=m2[0] || m1[1]!=m2[1]){
+        printf("RUNTIME ERROR: matrices being subtracted do not have the same dimensions.\n");
+        exit(1);
+    }
     int rows = (int) m1[0];
     int cols = (int) m1[1];
     int size = 2 + rows * cols;
@@ -140,6 +156,10 @@ double* scalarmf(double x, double* m){
 }
 
 int* multiplication(int* m1, int* m2){
+    if(m1[1]!=m2[0]){
+        printf("RUNTIME ERROR: matrices being multiplied do not have complementary dimensions.\n");
+        exit(1);
+    }
     int rows_one = m1[0];
     int rows_two = m2[0];
     int cols_one = m1[1];
@@ -160,6 +180,10 @@ int* multiplication(int* m1, int* m2){
 }
 
 double* multiplicationf(double* m1, double* m2){
+    if(m1[1]!=m2[0]){
+        printf("RUNTIME ERROR: matrices being multiplied do not have complementary dimensions.\n");
+        exit(1);
+    }
     int rows_one = (int) m1[0];
     int rows_two = (int) m2[0];
     int cols_one = (int) m1[1];
@@ -171,7 +195,7 @@ double* multiplicationf(double* m1, double* m2){
         for(int col=0; col<cols_two; col++){
             empty[2+(cols_two*row)+col] = 0;
             for(int val=0; val<cols_one; val++){
-                int x = m1[2+cols_one*row+val]*m2[2+cols_two*val+col];
+                double x = m1[2+cols_one*row+val]*m2[2+cols_two*val+col];
                 empty[2+cols_two*row+col] += x;
             }
         }
