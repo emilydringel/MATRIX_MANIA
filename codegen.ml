@@ -88,6 +88,64 @@ let translate (functions) =
 	(* Define each function (arguments and return type) 
 	so we can call it even before we've created its body *)
 
+		(* addition*)
+
+		let addm_t : L.lltype =
+			L.function_type (L.pointer_type i32_t) [| L.pointer_type i32_t; L.pointer_type i32_t |] in
+	let addm_func : L.llvalue =
+			L.declare_function "addm" addm_t the_module in
+
+	let addmf_t : L.lltype =
+			L.function_type (L.pointer_type float_t) [| L.pointer_type float_t; L.pointer_type float_t |] in
+	let addmf_func : L.llvalue =
+			L.declare_function "addmf" addmf_t the_module in
+
+	(* subtraction *)		
+	let subm_t : L.lltype =
+			L.function_type (L.pointer_type i32_t) [| L.pointer_type i32_t; L.pointer_type i32_t |] in
+	let subm_func : L.llvalue =
+			L.declare_function "subm" subm_t the_module in
+
+	let submf_t : L.lltype =
+			L.function_type (L.pointer_type float_t) [| L.pointer_type float_t; L.pointer_type float_t |] in
+	let submf_func : L.llvalue =
+			L.declare_function "submf" submf_t the_module in	
+
+	(* scalar multiplication*)
+
+	let scalarm_t : L.lltype =
+			L.function_type (L.pointer_type i32_t) [| float_t; L.pointer_type i32_t|] in
+	let scalarm_func : L.llvalue =
+			L.declare_function "scalarm" scalarm_t the_module in
+
+	let scalarmf_t : L.lltype =
+			L.function_type (L.pointer_type float_t) [| float_t; L.pointer_type float_t|] in
+	let scalarmf_func : L.llvalue =
+			L.declare_function "scalarmf" scalarmf_t the_module in
+
+	(* matrix multiplication*)
+
+	let multiplication_t : L.lltype =
+			L.function_type (L.pointer_type i32_t) [| L.pointer_type i32_t; L.pointer_type i32_t|] in
+	let multiplication_func : L.llvalue =
+			L.declare_function "multiplication" multiplication_t the_module in
+
+	let multiplicationf_t : L.lltype =
+			L.function_type (L.pointer_type float_t) [| L.pointer_type float_t; L.pointer_type float_t|] in
+	let multiplicationf_func : L.llvalue =
+			L.declare_function "multiplicationf" multiplicationf_t the_module in
+
+	(* equals *)
+	let equal_t : L.lltype =
+			L.function_type i32_t [| L.pointer_type i32_t; L.pointer_type i32_t|] in
+	let equal_func : L.llvalue =
+			L.declare_function "equal" equal_t the_module in
+
+	let equalf_t : L.lltype =
+			L.function_type i32_t [| L.pointer_type float_t; L.pointer_type float_t|] in
+	let equalf_func : L.llvalue =
+			L.declare_function "equalf" equalf_t the_module in
+
 	let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
 		let function_decl m fdecl =
 			let name = fdecl.sfname
@@ -236,17 +294,94 @@ let translate (functions) =
 				| SBinop ((A.Matrix(Int), _) as m1, op, m2) -> 
 					let m1' = expr builder m1
 					and m2' = expr builder m2 in
-					(match op with 
-						A.Add     -> (fun n1 n2 b -> n1) (* placeholder to remove warning until implemented *)
-						(*fun m_1 m_2 b ->  Attempt at using c function
-							L.build_call addm_func [| m_1 (*; m_2*) |] "addm" b*)
-					 (* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
-					| A.Sub     -> raise(Failure "not yet implemented")
-					| A.Mult    -> raise(Failure "not yet implemented") 
-					| A.Equal   -> raise(Failure "not yet implemented")
-					| A.Neq     -> raise(Failure "not yet implemented")
+					let ret = match op with 
+						A.Add     -> 
+							L.build_call addm_func [| m1';m2' |] "addm" builder
+						(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
+					| A.Sub     -> L.build_call subm_func [| m1';m2' |] "subm" builder
+					| A.Mult    -> 
+						let (t', _) = m2 in
+								let ret_val' = match t' with
+									A.Int -> 
+									let scalar = L.build_sitofp m2' float_t "scalar" builder in
+									L.build_call scalarm_func [| scalar;m1' |] "scalarm" builder
+								| A.Float ->
+									L.build_call scalarm_func [| m2';m1' |] "scalarm" builder
+								| _ -> L.build_call multiplication_func [| m2';m1' |] "matm" builder
+							in ret_val'
+					| A.Equal   -> L.build_call equal_func [| m1';m2' |] "equal" builder
+					| A.Neq     -> let eq = L.build_call equal_func [| m1';m2' |] "equal" builder in
+													L.build_xor eq (L.const_int i32_t 1) "and" builder
 					| _        	-> raise(Failure "internal error: semant should have rejected")
-					) m1' m2' builder
+					in ret
+				| SBinop ((_ as m1), (_ as op), ((A.Matrix(Int),_) as m2)) -> 
+						let m1' = expr builder m1
+						and m2' = expr builder m2 in
+						let ret = match op with 
+							A.Add     -> 
+								L.build_call addm_func [| m1';m2' |] "addm" builder
+							(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
+						| A.Sub     -> L.build_call subm_func [| m1';m2' |] "subm" builder
+						| A.Mult    -> 
+							let (t, _) = m1 in
+							let ret_val = match t with 
+									A.Int -> 
+									let scalar = L.build_sitofp m1' float_t "scalar" builder in
+									L.build_call scalarm_func [| scalar;m2' |] "scalarm" builder
+								| A.Float ->
+									L.build_call scalarm_func [| m1';m2' |] "scalarm" builder
+								| _ -> raise(Failure "should be caught elsewhere")
+							in ret_val
+						| A.Equal   -> L.build_call equal_func [| m1';m2' |] "equal" builder
+						| A.Neq     -> let eq = L.build_call equal_func [| m1';m2' |] "equal" builder in
+														L.build_xor eq (L.const_int i32_t 1) "and" builder
+						| _        	-> raise(Failure "internal error: semant should have rejected")
+						in ret
+				| SBinop ((A.Matrix(Float), _) as m1, op, m2) -> 
+					let m1' = expr builder m1
+					and m2' = expr builder m2 in
+					let ret = match op with 
+						A.Add     -> 
+							L.build_call addmf_func [| m1';m2' |] "addmf" builder
+						(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
+					| A.Sub     -> L.build_call submf_func [| m1';m2' |] "submf" builder
+					| A.Mult    -> 
+						let (t', _) = m2 in
+								let ret_val' = match t' with
+									A.Int -> 
+									let scalar = L.build_sitofp m2' float_t "scalar" builder in
+									L.build_call scalarmf_func [| scalar;m1' |] "scalarmf" builder
+								| A.Float ->
+									L.build_call scalarmf_func [| m2';m1' |] "scalarmf" builder
+								| _ -> L.build_call multiplicationf_func [| m2';m1' |] "matmf" builder
+							in ret_val'
+					| A.Equal   -> L.build_call equalf_func [| m1';m2' |] "equalf" builder
+					| A.Neq     -> let eq = L.build_call equalf_func [| m1';m2' |] "equalf" builder in
+													L.build_xor eq (L.const_int i32_t 1) "and" builder
+					| _        	-> raise(Failure "internal error: semant should have rejected")
+					in ret
+				| SBinop ((_ as m1), (_ as op), ((A.Matrix(Float),_) as m2)) -> 
+						let m1' = expr builder m1
+						and m2' = expr builder m2 in
+						let ret = match op with 
+							A.Add     -> L.build_call addm_func [| m1';m2' |] "addmf" builder
+							(* L.build_call printm_func [| (expr builder e) |] "printm" builder *)
+						| A.Sub     ->  L.build_call submf_func [| m1';m2' |] "submf" builder
+						| A.Mult    -> 
+							let (t, _) = m1 in
+							let ret_val = match t with 
+									A.Int -> 
+									let scalar = L.build_sitofp m1' float_t "scalar" builder in
+									L.build_call scalarmf_func [| scalar;m2' |] "scalarmf" builder
+								| A.Float ->
+									L.build_call scalarmf_func [| m1';m2' |] "scalarm" builder
+								| _ -> raise(Failure "should be caught elsewhere")
+							in ret_val
+						| A.Equal   -> L.build_call equalf_func [| m1';m2' |] "equalf" builder
+						| A.Neq     -> let eq = L.build_call equalf_func [| m1';m2' |] "equalf" builder in
+														L.build_xor eq (L.const_int i32_t 1) "and" builder
+						| _        	-> raise(Failure "internal error: semant should have rejected")
+						in ret
 				| SBinop ((t1, e1), op, (t2, e2)) when t1 == A.Float ->
 					let e1' = expr builder (t1, e1)
 					and e2' = expr builder (t2, e2) in
