@@ -14,8 +14,10 @@ def void multiply_s(matrix<int> x, int y){
 def int main(){
   
     matrix<int> m = [1,2,3;4,5,6];
-    int n = 2;  
+    matrix<int> n = [1,2,3;4,5,6];
+    int k = 2;  
 
-    multiply_s(m, n);
+    printm(k * m);
+    multiply_s(m, k);
     printm(m);
 }

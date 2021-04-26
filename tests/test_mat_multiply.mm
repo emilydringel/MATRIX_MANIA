@@ -16,8 +16,8 @@ def void multiply(matrix<int> x, matrix<int> y, matrix<int> empty){
 def int main(){
 
   matrix<int> m = [1, 0, 0;
-                   0, 1, 0;
-                   0, 0, 1];
+                   0, 2, 0;
+                   0, 0, 3];
   matrix<int> n = [1, 2, 3;
                    5, 6, 7;
                    8, 9, 10];
@@ -26,20 +26,5 @@ def int main(){
                         0, 0, 0];
   multiply(m, n, empty3);
   printm(empty3);
-  
-  /*
-  matrix<int> m = [1,4];
-  matrix<int> n = [2,3];
-  matrix<int> empty = [0,0];
-  matrix<int> empty2 = [0,0];
-
-  matrix<int> multiplied = multiply(m,n, empty);
-  matrix<int> multiplied2 = multiply([6,8],[9,10], empty2);
-
-
-  printm(m);
-  printm(n);
-  printm(multiplied);
-  printm(multiplied2);
-  */
+  printm(m*n);
 }

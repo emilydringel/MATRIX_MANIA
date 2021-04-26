@@ -1,8 +1,8 @@
 def int main(){
   
-    matrix<int> m = [1,4];
-    matrix<int> n = [2,3];
-    matrix<int> empty = [0,0];
+    matrix<int> m = [1,2,3;4,5,6];
+    matrix<int> n = [6,5,4;3,2,1];
+    matrix<int> empty = [0,0,0;0,0,0];
 
     int sizeOfR1 = getRows(m);
     int sizeOfC1 = getColumns(m);
@@ -14,5 +14,6 @@ def int main(){
     }
 
     printm(empty);
+    printm(m+n);
 
 }
